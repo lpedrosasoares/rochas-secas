@@ -28,10 +28,10 @@ const SITES = [
 ];
 
 const STATUS = {
-  good: { label: 'Bora', icon: '', cls: 's-good', color: '--good', head: 'Rocha seca. Manda ver!' },
+  good: { label: 'Bora', icon: '', cls: 's-good', color: '--good', head: 'Seco feito o sertão. Manda ver!' },
   warning: { label: 'Talvez', icon: '', cls: 's-warning', color: '--warning', head: 'Leva o magnésio e confere a rocha.' },
   serious: { label: 'Melhor não', icon: '', cls: 's-serious', color: '--serious', head: 'Arenito ainda úmido. Segura a onda.' },
-  critical: { label: 'Não dá', icon: '', cls: 's-critical', color: '--critical', head: 'Molhou. Fica pra próxima.' },
+  critical: { label: 'Não dá', icon: '', cls: 's-critical', color: '--critical', head: 'Choveu no sertão. Fica pra próxima.' },
 };
 
 const RAIN_HOUR = 0.2; // mm/h considerado "choveu"

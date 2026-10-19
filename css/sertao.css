@@ -1,0 +1,298 @@
+/* Rochas Secas: camada de estilo inspirada na capa de Vidas Secas
+   (céu em degradê vermelho → laranja → areia, gravura em tinta preta, letras altas e condensadas).
+   Vem depois de style.css e só muda o visual; a animação da cena é a mesma. */
+:root {
+  --sky-a: #c0391f;
+  --sky-b: #d9582a;
+  --sky-c: #ea853c;
+  --sky-d: #f2aa5e;
+  --sky-e: #f4c784;
+  --surface: #f7dfb2;
+  --ink: #1a0d08;
+  --ink-2: #4a2414;
+  --muted: #84513a;
+  --grid: #ebcb95;
+  --axis: #c29257;
+  --hair: rgba(26, 13, 8, 0.16);
+  --wash: rgba(140, 50, 20, 0.08);
+  --forecast: rgba(140, 50, 20, 0.07);
+  --shadow: #1a0d08;
+  --rust: #b8401f;
+  --yellow: #e99a3d;
+  --teal: #b8401f;
+  --font: "Archivo", system-ui, sans-serif;
+  --display: "League Gothic", "Oswald", "Arial Narrow", sans-serif;
+  --heavy: "Archivo Black", "Archivo", system-ui, sans-serif;
+  --hatch: repeating-linear-gradient(-24deg, rgba(70, 12, 0, 0.09) 0 1px, transparent 1px 5px);
+  --mata: #3f5220;            /* verde da Mata Atlântica */
+  --mata-2: #6d7c2e;
+  --ipe: #f2c230;             /* ipê-amarelo */
+  --leaf: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 20C4 10 10 4 21 3c0 11-6 17-16 17zm0 0l9-9' fill='%23000' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sky-a: #1c0805;
+    --sky-b: #3a120a;
+    --sky-c: #5a1f0f;
+    --sky-d: #6e2d14;
+    --sky-e: #4a2010;
+    --surface: #2b1710;
+    --ink: #f6dcae;
+    --ink-2: #e2bd8a;
+    --muted: #b48660;
+    --grid: #43271a;
+    --axis: #6b4128;
+    --hair: rgba(246, 220, 174, 0.14);
+    --wash: rgba(246, 220, 174, 0.06);
+    --forecast: rgba(246, 220, 174, 0.05);
+    --shadow: #000;
+    --rust: #e0703d;
+    --yellow: #f0a94e;
+    --teal: #e0703d;
+    --hatch: repeating-linear-gradient(-24deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 5px);
+  }
+}
+:root[data-theme="dark"] {
+  --sky-a: #1c0805;
+  --sky-b: #3a120a;
+  --sky-c: #5a1f0f;
+  --sky-d: #6e2d14;
+  --sky-e: #4a2010;
+  --surface: #2b1710;
+  --ink: #f6dcae;
+  --ink-2: #e2bd8a;
+  --muted: #b48660;
+  --grid: #43271a;
+  --axis: #6b4128;
+  --hair: rgba(246, 220, 174, 0.14);
+  --wash: rgba(246, 220, 174, 0.06);
+  --forecast: rgba(246, 220, 174, 0.05);
+  --shadow: #000;
+  --rust: #e0703d;
+  --yellow: #f0a94e;
+  --teal: #e0703d;
+  --hatch: repeating-linear-gradient(-24deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 5px);
+}
+
+/* céu da capa: vermelho no alto, laranja, areia embaixo, com hachura de gravura */
+body {
+  background-color: var(--sky-c);
+  background-image:
+    var(--hatch),
+    linear-gradient(180deg, var(--sky-a) 0%, var(--sky-b) 20%, var(--sky-c) 45%, var(--sky-d) 72%, var(--sky-e) 100%);
+  background-size: auto, auto;
+  background-attachment: fixed;
+  font: 15px/1.55 var(--font);
+}
+a { text-decoration-color: var(--rust); }
+
+/* ---- topo, como a capa ---- */
+.kicker { font: 400 17px/1.1 var(--heavy); letter-spacing: 0.06em; color: var(--ink); text-transform: uppercase; margin-bottom: 14px; }
+h1 {
+  font: 400 clamp(72px, 10vw, 140px)/0.82 var(--display);
+  font-stretch: normal; letter-spacing: 0.02em; text-transform: uppercase;
+  color: var(--ink); text-shadow: none;
+}
+.epigraph {
+  margin: 18px 0 6px; padding: 0 0 0 14px; max-width: 30em;
+  border-left: 3px solid var(--ink);
+  font: italic 500 17px/1.35 var(--font); color: var(--ink);
+}
+.epigraph cite { display: block; margin-top: 6px; font: 400 12px var(--heavy); font-style: normal; color: var(--ink-2); letter-spacing: 0.06em; text-transform: uppercase; }
+.sub { font: 600 15px var(--font); color: var(--ink); margin-top: 12px; }
+.upd { color: var(--ink-2); }
+.hero-chip { border-radius: 0; background: var(--surface); border: 2px solid var(--ink); font-family: var(--font); box-shadow: none; }
+.hero-scene { border: 2.5px solid var(--ink); border-bottom: 0; border-radius: 0; }
+
+/* linha de horizonte no lugar da corda */
+.rope { height: 4px; background: var(--ink); border: 0; box-shadow: none; }
+
+/* ---- painéis cor de areia, traço de tinta ---- */
+.board, .card {
+  background-color: var(--surface);
+  background-image: var(--hatch);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.btn, .seg button {
+  font: 400 13px var(--heavy); font-stretch: normal; letter-spacing: 0.04em; text-transform: uppercase;
+  border-radius: 0; border: 2px solid var(--ink); background: var(--surface); color: var(--ink);
+  box-shadow: none;
+}
+.btn:hover, .seg button:hover { background: var(--ink); color: var(--surface); }
+.seg button.on { background: var(--ink); color: var(--surface); }
+.btn:focus-visible, .seg button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--ink); }
+#theme { font-family: system-ui, sans-serif; }
+.ctrl-label { font: 400 20px var(--display); letter-spacing: 0.04em; text-transform: uppercase; }
+.target-label { font: 400 20px var(--display); letter-spacing: 0.03em; text-transform: uppercase; }
+.scrubber:focus-within .scrub-track { outline-color: var(--ink); }
+
+/* ---- títulos de capítulo em letra condensada ---- */
+.tape {
+  clip-path: none; transform: none;
+  background: none; color: var(--ink); padding: 0;
+  font: 400 34px/0.95 var(--display); font-stretch: normal; text-transform: uppercase; letter-spacing: 0.03em;
+  display: inline-flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+.tape::before {
+  content: ""; width: 22px; height: 22px; align-self: center; background: var(--mata);
+  -webkit-mask: var(--leaf) center / contain no-repeat; mask: var(--leaf) center / contain no-repeat;
+}
+.tape .unit { font: 500 13px var(--font); opacity: 1; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.panel-head { border-bottom: 2px solid var(--ink); padding-bottom: 10px; }
+
+/* ---- cartões ---- */
+.card::before { height: 12px; background-image: var(--hatch); border-bottom: 2px solid var(--ink); }
+.card h3 { font: 400 40px/0.9 var(--display); font-stretch: normal; letter-spacing: 0.03em; }
+.card .rock { color: var(--muted); }
+.verdict { font: 400 clamp(26px, 3vw, 32px)/1.1 var(--heavy); font-stretch: normal; letter-spacing: -0.01em; }
+.reasons li::before {
+  -webkit-mask: none; mask: none;
+  width: 8px; height: 8px; border-radius: 50%; transform: none;
+  background: var(--status); border: 1.5px solid var(--ink);
+}
+.stat { background: transparent; border: 2px solid var(--ink); border-radius: 0; }
+.stat .v { font: 400 30px/1 var(--display); font-stretch: normal; letter-spacing: 0.02em; }
+
+/* status: sol/carimbo redondo + texto (cor nunca sozinha) */
+.pill { font: 400 13px var(--heavy); font-stretch: normal; letter-spacing: 0.04em; }
+.pill::before {
+  -webkit-mask: none; mask: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--ink); box-sizing: border-box;
+}
+.card-head .pill::before { width: 22px; height: 22px; }
+.hero-chip .pill::before { width: 16px; height: 16px; }
+.swatch { -webkit-mask: none; mask: none; border-radius: 50%; border: 1px solid var(--ink); box-sizing: border-box; }
+
+/* ---- mapa em tom de terra ---- */
+#map { border-radius: 0; border: 2px solid var(--ink); }
+.leaflet-tile-pane { filter: sepia(0.55) saturate(1.15) hue-rotate(-12deg) contrast(1.03); }
+.site-label { border-radius: 0; font: 400 12px var(--heavy); border-color: #1a0d08; }
+.leaflet-popup-content-wrapper { border-radius: 0; }
+
+/* ---- gráficos e tabela ---- */
+.chart .row-title { font: 400 16px var(--display); letter-spacing: 0.05em; }
+.chart .target-line { stroke: var(--ink); }
+.tooltip { border-radius: 0; background: var(--surface); box-shadow: none; border: 2px solid var(--ink); }
+.tooltip .t { font: 400 18px var(--display); letter-spacing: 0.03em; text-transform: uppercase; }
+th { font: 400 16px var(--display); letter-spacing: 0.04em; }
+.hint::before { content: "→ "; }
+.callout {
+  background: transparent; border: 0; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  border-radius: 0; padding: 12px 2px;
+  font: 400 26px/1.1 var(--display); font-stretch: normal; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink) !important;
+}
+.error { border-radius: 0; }
+
+/* ---- cena: só cores e cenário (animação igual) ---- */
+#scene { --sky-1: #b8321e; --sky-2: #f3b268; }
+#scene.rainy { --sky-1: #3b1f1a; --sky-2: #8c5a44; }
+:root[data-theme="dark"] #scene { --sky-1: #160705; --sky-2: #6b2a14; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #scene { --sky-1: #160705; --sky-2: #6b2a14; } }
+:root[data-theme="dark"] #scene.rainy { --sky-1: #0e0605; --sky-2: #3a2219; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #scene.rainy { --sky-1: #0e0605; --sky-2: #3a2219; } }
+#scene .hatch-line { stroke: #4a0f04; stroke-width: 0.6; opacity: 0.22; }
+#scene .hatch-sun-line { stroke: #c4522a; stroke-width: 0.9; opacity: 0.75; }
+#scene .sun { fill: #f6c06a; stroke: #1a0d08; stroke-width: 1.2; }
+#scene .sun-hatch { transition: opacity 0.8s; }
+#scene.rainy .sun-hatch { opacity: 0; }
+#scene .cloud { fill: rgba(255, 214, 160, 0.45); }
+#scene.rainy .cloud:not(.storm) { fill: #6b3a2a; }
+#scene .cloud.storm { fill: #2e1610; }
+#scene .hill-far { fill: #d06a35; }
+#scene .hill-near { fill: #a8461f; }
+#scene.rainy .hill-far { fill: #7a3f28; }
+#scene.rainy .hill-near { fill: #5e2c18; }
+#scene .trees { fill: #1a0d08; }
+#scene .ground { fill: #e7ad66; }
+#scene.rainy .ground { fill: #9c6a44; }
+#scene .rock { fill: #e9a35c; stroke: #1a0d08; }
+#scene .rock-shade { fill: #bf6a34; }
+#scene .strata { stroke: rgba(90, 28, 8, 0.4); }
+#scene.rainy .rock { fill: #b7743e; }
+#scene.rainy .rock-shade { fill: #8a4a24; }
+#scene .pad { fill: #3a2418; }
+#scene .pad-2 { fill: #8a2f18; }
+#scene .ink-flora path { fill: none; stroke: #1a0d08; stroke-linecap: round; stroke-linejoin: round; }
+#scene .cactus-ribs path { stroke: #e0662a; stroke-width: 1; opacity: 0.6; }
+
+
+/* ======== sertão + Mata Atlântica ======== */
+.card::before { background-color: var(--status); }
+.kicker::after { content: " · Mata Atlântica"; color: var(--mata); }
+
+/* cipó com folhas pendurado na moldura da cena */
+.hero-scene { position: relative; }
+.vine { position: absolute; left: 0; top: 0; width: 100%; height: 46px; z-index: 2; pointer-events: none; overflow: visible; }
+.vine path { fill: none; stroke: #1a0d08; stroke-width: 1.4; }
+.vine .vine-stem { stroke-width: 2.4; }
+.vine .vleaf { fill: var(--mata-2); stroke: #1a0d08; stroke-width: 1; transform-box: fill-box; transform-origin: top center; animation: sway 4s ease-in-out infinite alternate; }
+.vine .vleaf:nth-of-type(3n) { fill: var(--mata); animation-duration: 5.2s; }
+@keyframes sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+
+/* morros com copa de mata */
+#scene .hill-far { fill: #7a7d34; }
+#scene .hill-near { fill: #4a5a22; }
+#scene.rainy .hill-far { fill: #4f5328; }
+#scene.rainy .hill-near { fill: #303a17; }
+:root[data-theme="dark"] #scene .hill-far, :root[data-theme="dark"] #scene .hill-near { filter: brightness(0.5); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #scene .hill-far, :root:not([data-theme="light"]) #scene .hill-near { filter: brightness(0.5); } }
+
+/* quaresmeira, paineira, ipê-amarelo, embaúba */
+#scene .mata path { fill: none; stroke: #1a0d08; stroke-linecap: round; }
+#scene .ipe-trunk { stroke-width: 3; }
+#scene .ipe-bloom { fill: var(--ipe); stroke: #1a0d08; stroke-width: 1; }
+#scene.rainy .ipe-bloom { fill: #b8902a; }
+#scene .embauba-trunk { stroke: #d8d2bd !important; stroke-width: 2.4; }
+#scene .embauba-leaf { stroke: #b9c09a !important; stroke-width: 3.4; }
+
+/* terra rachada */
+#scene .cracks path { fill: none; stroke: #1a0d08; stroke-width: 1; opacity: 0.55; }
+
+/* urubus-reis circulando */
+#scene .urubus path { fill: none; stroke: #1a0d08; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#scene .orbit { transform-box: view-box; }
+#scene .o1 { transform-origin: 300px 46px; animation: orbit 16s linear infinite; }
+#scene .o2 { transform-origin: 360px 58px; animation: orbit 22s linear infinite reverse; }
+#scene .o1 .bird { transform: translate(300px, 18px); }
+#scene .o2 .bird { transform: translate(360px, 34px); }
+@keyframes orbit { to { transform: rotate(360deg); } }
+#scene.rainy .urubus { opacity: 0; }
+#scene .urubus { transition: opacity 0.8s; }
+
+/* rodapé panorâmico: caatinga ↔ mata */
+.pano { margin-top: 8px; }
+.pano svg { display: block; width: 100%; height: 170px; }
+.pano .pano-ground { fill: #e7ad66; stroke: #1a0d08; stroke-width: 2; }
+.pano .pano-ink path { fill: none; stroke: #1a0d08; stroke-linecap: round; stroke-linejoin: round; }
+.pano .pano-canopy { fill: var(--mata); stroke: #1a0d08; stroke-width: 2; }
+.pano .pano-trunk { fill: none; stroke: #1a0d08; stroke-width: 4; stroke-linecap: round; }
+.pano .pano-ipe circle { fill: var(--ipe); stroke: #1a0d08; stroke-width: 2; }
+.pano .pano-fern { fill: none; stroke: var(--mata-2); stroke-width: 3; stroke-linecap: round; }
+.pano .pano-cracks { fill: none; stroke: #1a0d08; stroke-width: 1.4; opacity: 0.6; }
+:root[data-theme="dark"] .pano .pano-ground, :root[data-theme="dark"] 
+/* flora e fauna registradas na Flona de Ipanema */
+#scene .quares-trunk, #scene .paineira-trunk { stroke-width: 2.6; }
+#scene .quares-bloom { fill: #7d4bb0; stroke: #1a0d08; stroke-width: 1; }
+#scene .paineira-bloom { fill: #e46aa6; stroke: #1a0d08; stroke-width: 1; }
+#scene.rainy .quares-bloom { fill: #5a3a7a; }
+#scene.rainy .paineira-bloom { fill: #a8507a; }
+#scene .woodpecker .peck { transform-box: fill-box; transform-origin: 30% 80%; animation: peck 2.6s ease-in-out infinite; }
+@keyframes peck { 0%, 70%, 100% { transform: rotate(0); } 74% { transform: rotate(16deg); } 78% { transform: rotate(0); } 82% { transform: rotate(16deg); } 86% { transform: rotate(0); } 90% { transform: rotate(16deg); } }
+.pano .pano-jequi { fill: var(--mata); stroke: #1a0d08; stroke-width: 2; }
+.pano .pano-paineira-trunk { fill: #8a8f62; stroke: #1a0d08; stroke-width: 2; }
+.pano .pano-paineira circle { fill: #e46aa6; stroke: #1a0d08; stroke-width: 2; }
+.pano .pano-tamandua .t-tail { fill: #3a2e24; stroke: #1a0d08; stroke-width: 1.5; }
+.pano .pano-tamandua .t-body, .pano .pano-tamandua .t-snout { fill: #7a6a55; stroke: #1a0d08; stroke-width: 1.5; }
+.pano .pano-tamandua .t-stripe { stroke: #1a0d08; stroke-width: 5; stroke-linecap: round; }
+.pano .pano-tamandua .t-legs { stroke: #1a0d08; stroke-width: 4; stroke-linecap: round; }
+.pano .pano-lobo .l-legs { stroke: #1a0d08; stroke-width: 3.4; stroke-linecap: round; }
+.pano .pano-lobo .l-body, .pano .pano-lobo .l-head { fill: #c4501c; stroke: #1a0d08; stroke-width: 1.5; }
+.pano .pano-lobo .l-tail { fill: #c4501c; stroke: #1a0d08; stroke-width: 1.5; }
+.pano .pano-lobo .l-mane { fill: none; stroke: #1a0d08; stroke-width: 4; stroke-linecap: round; }
+.pano .pano-lobo .l-ear { fill: #1a0d08; }
+.pano svg { height: 190px; }
+@media (prefers-reduced-motion: reduce) { #scene .woodpecker .peck { animation: none !important; } }

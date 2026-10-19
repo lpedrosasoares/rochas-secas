@@ -1,4 +1,4 @@
-# 🪨 Rocha Seca
+# 🪨 Rochas Secas
 
 WebGIS simples para decidir se dá pra escalar no **Iperocks** (boulder em arenito, Iperó/SP) e na **Flona de Ipanema** (Morro Araçoiaba), perto de Sorocaba.
 

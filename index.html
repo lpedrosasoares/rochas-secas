@@ -3,20 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rocha Seca</title>
+  <title>Rochas Secas</title>
   <meta name="description" content="Choveu no Iperocks e na Flona de Ipanema? Chuva dos últimos dias e previsão para decidir se dá pra escalar.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4 13c-1-4 2-8 7-9 5-1 9 2 9 6 0 3-2 5-4 7-3 3-8 4-10 2-1-1-1-4-2-6z' fill='%23f5c400' stroke='%23000' stroke-width='1.2'/><circle cx='12' cy='11' r='2' fill='%23000'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=League+Gothic&family=Archivo+Black&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/sertao.css">
 </head>
 <body>
   <header class="hero">
     <div class="hero-text">
       <p class="kicker">Iperó · Araçoiaba da Serra · SP</p>
-      <h1>Rocha<br>Seca</h1>
+      <h1>Rochas<br>Secas</h1>
+      <blockquote class="epigraph">“Fabiano esfregou as mãos satisfeito e empurrou os tições com a ponta da alpercata.”<cite>Graciliano Ramos, <i>Vidas Secas</i></cite></blockquote>
       <p class="sub">Choveu no Iperocks e na Flona? Dá pra mandar?</p>
       <div id="hero-status" class="hero-status" aria-live="polite"></div>
       <div class="top-actions">
@@ -27,15 +29,24 @@
     </div>
 
     <div class="hero-scene">
+      <svg class="vine" viewBox="0 0 720 60" preserveAspectRatio="xMinYMin slice" aria-hidden="true"><path class="vine-stem" d="M0 3 C 80 8, 160 4, 200 10 M540 9 C 600 2, 660 8, 720 6"/><path d="M8 2 Q 11 5 9 10"/><path class="vleaf" d="M9 10 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M34 2 Q 37 10 35 19"/><path class="vleaf" d="M35 19 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M60 2 Q 63 14 61 28"/><path class="vleaf" d="M61 28 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M86 2 Q 89 18 87 37"/><path class="vleaf" d="M87 37 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M112 2 Q 115 9 113 18"/><path class="vleaf" d="M113 18 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M138 2 Q 141 14 139 27"/><path class="vleaf" d="M139 27 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M164 2 Q 167 18 165 36"/><path class="vleaf" d="M165 36 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M580 2 Q 583 6 581 12"/><path class="vleaf" d="M581 12 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M606 2 Q 609 10 607 21"/><path class="vleaf" d="M607 21 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M632 2 Q 635 15 633 30"/><path class="vleaf" d="M633 30 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M658 2 Q 661 6 659 11"/><path class="vleaf" d="M659 11 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M684 2 Q 687 10 685 20"/><path class="vleaf" d="M685 20 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/><path d="M710 2 Q 713 14 711 29"/><path class="vleaf" d="M711 29 c -6 2 -8 10 -2 14 c 6 -3 7 -10 2 -14 Z"/></svg>
       <svg id="scene" viewBox="0 0 600 300" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Escalador subindo um boulder; quando o veredito é ruim, chove e ele espera sentado no crash pad">
         <defs>
           <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" class="sky1"/>
             <stop offset="1" class="sky2"/>
           </linearGradient>
+          <pattern id="hatch-sky" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
+            <line x1="0" y1="0" x2="0" y2="5" class="hatch-line"/>
+          </pattern>
+          <pattern id="hatch-sun" width="3.4" height="3.4" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)">
+            <line x1="0" y1="0" x2="0" y2="3.4" class="hatch-sun-line"/>
+          </pattern>
         </defs>
         <rect width="600" height="300" fill="url(#sky)"/>
+        <rect class="sky-hatch" width="600" height="300" fill="url(#hatch-sky)"/>
         <circle class="sun" cx="110" cy="72" r="26"/>
+        <circle class="sun-hatch" cx="110" cy="72" r="26" fill="url(#hatch-sun)"/>
         <g class="clouds">
           <g class="cloud c1"><ellipse cx="200" cy="58" rx="34" ry="12"/><ellipse cx="222" cy="50" rx="22" ry="13"/><ellipse cx="182" cy="52" rx="16" ry="10"/></g>
           <g class="cloud c2"><ellipse cx="470" cy="40" rx="30" ry="10"/><ellipse cx="488" cy="33" rx="18" ry="11"/></g>
@@ -43,14 +54,53 @@
           <g class="cloud c4 storm"><ellipse cx="80" cy="44" rx="56" ry="16"/><ellipse cx="110" cy="34" rx="30" ry="15"/></g>
           <g class="cloud c5 storm"><ellipse cx="540" cy="58" rx="50" ry="15"/><ellipse cx="520" cy="48" rx="26" ry="13"/></g>
         </g>
+        <!-- urubus-reis circulando -->
+        <g class="urubus">
+          <g class="orbit o1"><g class="bird"><path d="M-9 0 Q -4 -4 0 0 Q 4 -4 9 0"/></g></g>
+          <g class="orbit o2"><g class="bird"><path d="M-7 0 Q -3 -3 0 0 Q 3 -3 7 0"/></g></g>
+        </g>
         <!-- Morro Araçoiaba ao fundo -->
-        <path class="hill-far" d="M0 215 C 50 205, 90 168, 150 150 C 200 136, 240 150, 280 168 C 330 190, 380 184, 430 176 C 490 166, 540 178, 600 190 L600 300 L0 300 Z"/>
-        <path class="hill-near" d="M0 250 C 60 236, 120 240, 180 246 C 260 254, 420 240, 600 248 L600 300 L0 300 Z"/>
-        <g class="trees">
-          <path d="M40 262 l12 -40 l12 40 Z"/><path d="M62 266 l10 -32 l10 32 Z"/><path d="M150 262 l9 -28 l9 28 Z"/>
-          <circle cx="572" cy="238" r="16"/><circle cx="556" cy="246" r="12"/><rect x="569" y="246" width="5" height="20"/>
+        <path class="hill-far" d="M0 300 L0 194.7 A 17.0 13.6 0 0 1 22.0 190.0 A 11.0 8.8 0 0 1 44.0 184.3 A 13.0 10.4 0 0 1 66.0 177.7 A 17.0 13.6 0 0 1 88.0 170.7 A 11.0 8.8 0 0 1 110.0 163.9 A 13.0 10.4 0 0 1 132.0 157.8 A 17.0 13.6 0 0 1 154.0 153.1 A 11.0 8.8 0 0 1 176.0 150.4 A 13.0 10.4 0 0 1 198.0 150.0 A 17.0 13.6 0 0 1 220.0 151.9 A 11.0 8.8 0 0 1 242.0 155.7 A 13.0 10.4 0 0 1 264.0 160.8 A 17.0 13.6 0 0 1 286.0 166.5 A 11.0 8.8 0 0 1 308.0 172.0 A 13.0 10.4 0 0 1 330.0 176.4 A 17.0 13.6 0 0 1 352.0 179.4 A 11.0 8.8 0 0 1 374.0 180.9 A 13.0 10.4 0 0 1 396.0 181.1 A 17.0 13.6 0 0 1 418.0 180.6 A 11.0 8.8 0 0 1 440.0 180.0 A 13.0 10.4 0 0 1 462.0 180.0 A 17.0 13.6 0 0 1 484.0 181.1 A 11.0 8.8 0 0 1 506.0 183.4 A 13.0 10.4 0 0 1 528.0 186.7 A 17.0 13.6 0 0 1 550.0 190.4 A 11.0 8.8 0 0 1 572.0 194.3 A 13.0 10.4 0 0 1 594.0 197.7 A 17.0 13.6 0 0 1 600.0 198.5 L600 300 Z"/>
+        <path class="hill-near" d="M0 300 L0 250.0 A 12.0 9.6 0 0 1 16.0 248.6 A 7.5 6.0 0 0 1 32.0 247.4 A 9.0 7.2 0 0 1 48.0 246.2 A 12.0 9.6 0 0 1 64.0 245.2 A 7.5 6.0 0 0 1 80.0 244.5 A 9.0 7.2 0 0 1 96.0 244.1 A 12.0 9.6 0 0 1 112.0 244.0 A 7.5 6.0 0 0 1 128.0 244.2 A 9.0 7.2 0 0 1 144.0 244.7 A 12.0 9.6 0 0 1 160.0 245.5 A 7.5 6.0 0 0 1 176.0 246.5 A 9.0 7.2 0 0 1 192.0 247.7 A 12.0 9.6 0 0 1 208.0 249.0 A 7.5 6.0 0 0 1 224.0 250.4 A 9.0 7.2 0 0 1 240.0 251.7 A 12.0 9.6 0 0 1 256.0 253.0 A 7.5 6.0 0 0 1 272.0 254.1 A 9.0 7.2 0 0 1 288.0 255.0 A 12.0 9.6 0 0 1 304.0 255.6 A 7.5 6.0 0 0 1 320.0 255.9 A 9.0 7.2 0 0 1 336.0 256.0 A 12.0 9.6 0 0 1 352.0 255.7 A 7.5 6.0 0 0 1 368.0 255.1 A 9.0 7.2 0 0 1 384.0 254.3 A 12.0 9.6 0 0 1 400.0 253.2 A 7.5 6.0 0 0 1 416.0 252.0 A 9.0 7.2 0 0 1 432.0 250.7 A 12.0 9.6 0 0 1 448.0 249.3 A 7.5 6.0 0 0 1 464.0 248.0 A 9.0 7.2 0 0 1 480.0 246.7 A 12.0 9.6 0 0 1 496.0 245.7 A 7.5 6.0 0 0 1 512.0 244.9 A 9.0 7.2 0 0 1 528.0 244.3 A 12.0 9.6 0 0 1 544.0 244.0 A 7.5 6.0 0 0 1 560.0 244.1 A 9.0 7.2 0 0 1 576.0 244.4 A 12.0 9.6 0 0 1 592.0 245.1 A 7.5 6.0 0 0 1 600.0 245.5 L600 300 Z"/>
+        <!-- flora do Morro Araçoiaba: quaresmeira, ipê, paineira e embaúba -->
+        <g class="mata">
+          <path class="quares-trunk" d="M96 282 C 94 250, 100 220, 96 190 M96 205 C 88 196, 84 186, 82 178 M97 198 C 106 190, 110 182, 112 174"/><circle class="quares-bloom" cx="82" cy="172" r="7.5"/><circle class="quares-bloom" cx="94" cy="166" r="9.0"/><circle class="quares-bloom" cx="108" cy="168" r="7.5"/><circle class="quares-bloom" cx="88" cy="182" r="9.0"/><circle class="quares-bloom" cx="102" cy="180" r="7.5"/><circle class="quares-bloom" cx="114" cy="180" r="9.0"/><circle class="quares-bloom" cx="76" cy="184" r="7.5"/><circle class="quares-bloom" cx="96" cy="156" r="9.0"/>
+          <path class="paineira-trunk" d="M244 250 C 236 210, 254 180, 246 150 C 244 136, 248 128, 247 120 M247 132 C 236 124, 230 114, 226 106 M247 128 C 258 120, 264 110, 268 102"/><circle class="paineira-bloom" cx="226" cy="100" r="8"/><circle class="paineira-bloom" cx="240" cy="94" r="9.5"/><circle class="paineira-bloom" cx="254" cy="92" r="8"/><circle class="paineira-bloom" cx="268" cy="98" r="9.5"/><circle class="paineira-bloom" cx="232" cy="110" r="8"/><circle class="paineira-bloom" cx="248" cy="104" r="9.5"/><circle class="paineira-bloom" cx="262" cy="108" r="8"/><circle class="paineira-bloom" cx="244" cy="84" r="9.5"/><circle class="paineira-bloom" cx="276" cy="108" r="8"/><circle class="paineira-bloom" cx="216" cy="108" r="9.5"/>
+          <path class="ipe-trunk" d="M160 282 C 158 250, 162 230, 158 212 M158 228 C 148 218, 142 210, 138 200 M159 220 C 170 212, 178 204, 182 196 M158 212 C 160 200, 156 190, 160 180"/><circle class="ipe-bloom" cx="160" cy="170" r="7.5"/><circle class="ipe-bloom" cx="146" cy="178" r="9"/><circle class="ipe-bloom" cx="174" cy="176" r="7.5"/><circle class="ipe-bloom" cx="134" cy="190" r="9"/><circle class="ipe-bloom" cx="186" cy="190" r="7.5"/><circle class="ipe-bloom" cx="152" cy="186" r="9"/><circle class="ipe-bloom" cx="168" cy="190" r="7.5"/><circle class="ipe-bloom" cx="158" cy="200" r="9"/><circle class="ipe-bloom" cx="140" cy="201" r="7.5"/><circle class="ipe-bloom" cx="178" cy="202" r="9"/><circle class="ipe-bloom" cx="150" cy="166" r="7.5"/><circle class="ipe-bloom" cx="170" cy="163" r="9"/><circle class="ipe-bloom" cx="126" cy="200" r="7.5"/><circle class="ipe-bloom" cx="192" cy="200" r="9"/>
+          <path class="embauba-trunk" d="M470 250 V62 M470 150 C 456 140, 452 120, 452 84 M470 130 C 486 122, 490 100, 490 80 M452 150 C 446 140, 440 124, 440 110 M490 140 C 498 130, 500 118, 500 106"/><path class="embauba-leaf" d="M470 62 L 459.7 59.6 M470 62 L 462.0 57.2 M470 62 L 465.5 55.6 M470 62 L 469.8 55.0 M470 62 L 474.1 55.5 M470 62 L 477.8 57.1 M470 62 L 480.2 59.4"/><path class="embauba-leaf" d="M452 84 L 441.7 81.6 M452 84 L 444.0 79.2 M452 84 L 447.5 77.6 M452 84 L 451.8 77.0 M452 84 L 456.1 77.5 M452 84 L 459.8 79.1 M452 84 L 462.2 81.4"/><path class="embauba-leaf" d="M490 80 L 479.7 77.6 M490 80 L 482.0 75.2 M490 80 L 485.5 73.6 M490 80 L 489.8 73.0 M490 80 L 494.1 73.5 M490 80 L 497.8 75.1 M490 80 L 500.2 77.4"/><path class="embauba-leaf" d="M440 110 L 429.7 107.6 M440 110 L 432.0 105.2 M440 110 L 435.5 103.6 M440 110 L 439.8 103.0 M440 110 L 444.1 103.5 M440 110 L 447.8 105.1 M440 110 L 450.2 107.4"/><path class="embauba-leaf" d="M500 106 L 489.7 103.6 M500 106 L 492.0 101.2 M500 106 L 495.5 99.6 M500 106 L 499.8 99.0 M500 106 L 504.1 99.5 M500 106 L 507.8 101.1 M500 106 L 510.2 103.4"/>
+        </g>
+        <!-- mandacaru e árvore seca em tinta, como na capa -->
+        <g class="ink-flora">
+          <g class="cactus">
+            <path d="M30 288 V96" stroke-width="15"/>
+            <path d="M30 212 H14 V150" stroke-width="10"/>
+            <path d="M30 176 H47 V122" stroke-width="10"/>
+          </g>
+          <g class="cactus-ribs">
+            <path d="M27 286 V100 M33 286 V100 M14 208 V154 M47 172 V126"/>
+          </g>
+          <!-- pica-pau-rei (Campephilus robustus) bicando o tronco seco -->
+          <g class="woodpecker" transform="translate(574 142)">
+            <path d="M1 8 L -1 20 L 4 17 Z" fill="#1a0d08"/>
+            <ellipse cx="0" cy="0" rx="4.6" ry="9" fill="#1a0d08"/>
+            <path d="M-2.6 -6 Q -4.6 1 -1.6 8" fill="none" stroke="#f6efe0" stroke-width="1.6" stroke-linecap="round"/>
+            <g class="peck">
+              <path d="M-2 -14 L -8 -21 L -1 -17 Z" fill="#d22a1e" stroke="#1a0d08" stroke-width="0.6"/>
+              <circle cx="1" cy="-12" r="5" fill="#d22a1e" stroke="#1a0d08" stroke-width="0.8"/>
+              <path d="M5 -13 L 12 -11.5 L 5 -10 Z" fill="#efe2c4" stroke="#1a0d08" stroke-width="0.7"/>
+              <circle cx="2.4" cy="-13" r="1.1" fill="#f6efe0"/><circle cx="2.6" cy="-13" r="0.5" fill="#1a0d08"/>
+            </g>
+          </g>
+          <g class="dead-tree">
+            <path d="M590 290 C 584 252, 597 222, 585 192 C 577 170, 589 150, 581 120" stroke-width="10"/>
+            <path d="M585 192 C 567 182, 557 162, 548 142" stroke-width="5"/>
+            <path d="M583 150 C 596 140, 603 120, 601 96" stroke-width="4.5"/>
+            <path d="M581 120 C 575 101, 579 85, 571 66" stroke-width="3.5"/>
+            <path d="M548 142 C 541 131, 537 120, 530 113 M556 160 C 548 160, 542 156, 537 150 M571 66 L 563 52 M571 66 L 579 50 M601 96 L 594 82 M592 132 L 600 128" stroke-width="2"/>
+          </g>
         </g>
         <rect class="ground" x="0" y="280" width="600" height="20"/>
+        <g class="cracks"><path d="M10 291 l14 3 l10 -2 l12 4 M60 296 l9 -3 l14 2 M120 292 l10 4 l16 -1 M206 297 l12 -3 l9 2 M300 293 l16 3 l8 -2 M380 296 l12 -4 l15 3 M450 291 l10 3 l14 -1 l8 3 M520 297 l14 -3 M560 292 l12 3 l10 -2"/></g>
         <!-- crash pads: um sob o teto (saída sentada) e um para a descida -->
         <rect class="pad" x="244" y="275" width="84" height="10" rx="3"/>
         <path class="pad-line" d="M286 275 V285"/>
@@ -134,7 +184,7 @@
     <section class="grid">
       <div class="panel board map-panel">
         <div class="panel-head">
-          <h2 class="tape t-yellow">Setores</h2>
+          <h2 class="tape t-yellow">Mudança <span class="unit">mapa dos setores</span></h2>
           <label class="chk"><input type="checkbox" id="radar-toggle"> Radar (últimas 2h)</label>
         </div>
         <div id="map"></div>
@@ -143,7 +193,7 @@
 
       <div class="panel board">
         <div class="panel-head">
-          <h2 class="tape t-teal">Chuva por dia <span class="unit">mm</span></h2>
+          <h2 class="tape t-teal">Inverno <span class="unit">chuva por dia · mm</span></h2>
           <div class="legend" id="legend-daily"></div>
         </div>
         <div id="daily-chart" class="chart" role="img" aria-label="Gráfico de chuva diária"></div>
@@ -152,7 +202,7 @@
 
       <div class="panel board wide">
         <div class="panel-head">
-          <h2 class="tape t-pink">Hora a hora <span class="unit">mm/h</span></h2>
+          <h2 class="tape t-pink">Inverno miúdo <span class="unit">hora a hora · mm/h</span></h2>
           <span class="note">Faixa sombreada = 72 h antes do momento avaliado</span>
         </div>
         <div id="hourly-chart" class="chart" role="img" aria-label="Gráfico de chuva horária"></div>
@@ -161,14 +211,14 @@
 
       <div class="panel board wide">
         <details>
-          <summary><span class="tape t-violet">Tabela diária</span></summary>
+          <summary><span class="tape t-violet">Livro de contas <span class="unit">tabela diária</span></span></summary>
           <div id="table-wrap" class="table-wrap"></div>
         </details>
       </div>
     </section>
 
     <section class="panel board about">
-      <h2 class="tape t-yellow">Beta</h2>
+      <h2 class="tape t-yellow">Contas <span class="unit">como o veredito é calculado</span></h2>
       <p>A partir do momento escolhido, o app soma a chuva das <b>24 h</b>, das <b>24–48 h</b> e das <b>48–72 h</b> anteriores, e olha a previsão das 6 h seguintes.
         Iperocks é <b>arenito</b>: molhado, perde resistência e as agarras quebram. Espere 24 a 48 h sem chuva, e mais se choveu muito ou o ar está úmido.</p>
       <ul class="rules">
@@ -181,6 +231,48 @@
       <p class="note">Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (modelo, não pluviômetro) · radar <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> · mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Chuva de verão é localizada, isto é uma estimativa.</p>
     </section>
   </main>
+
+  <footer class="pano" aria-hidden="false">
+    <svg viewBox="0 0 1200 170" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path class="pano-ground" d="M0 150 C 200 138, 400 146, 600 142 C 800 138, 1000 146, 1200 140 V170 H0 Z"/>
+      <g class="pano-ink">
+        <path d="M60 150 V60 M60 110 H40 V78 M60 92 H82 V52" stroke-width="12"/>
+        <path d="M150 150 V96 M150 124 H136 V104 M150 116 H164 V92" stroke-width="8"/>
+        <path d="M250 150 C 246 120, 258 100, 250 80 M250 104 C 236 96, 228 84, 224 70 M251 92 C 266 84, 272 72, 272 58 M224 70 l -8 -10 M272 58 l 6 -12" stroke-width="4"/>
+      </g>
+      <g class="pano-mata">
+        <path class="pano-canopy" d="M560 150 A 26 20 0 0 1 610 132 A 30 24 0 0 1 668 118 A 34 26 0 0 1 732 112 A 30 24 0 0 1 790 120 A 36 28 0 0 1 858 110 A 30 24 0 0 1 916 118 A 34 26 0 0 1 980 108 A 30 24 0 0 1 1040 116 A 34 26 0 0 1 1104 106 A 30 24 0 0 1 1160 114 A 26 20 0 0 1 1200 120 V150 Z"/>
+        <!-- jequitibá emergente -->
+        <path class="pano-trunk" d="M726 150 C 722 110, 730 80, 726 44 M726 70 C 712 60, 700 52, 690 44 M727 62 C 742 54, 754 46, 764 40"/>
+        <path class="pano-jequi" d="M676 44 C 680 24, 712 18, 730 22 C 750 14, 780 22, 782 40 C 770 50, 690 54, 676 44 Z"/>
+        <!-- paineira: tronco barrigudo e flores rosa -->
+        <path class="pano-paineira-trunk" d="M996 150 C 984 120, 990 96, 998 84 C 1004 96, 1012 120, 1004 150 Z"/>
+        <path class="pano-trunk" d="M999 86 C 996 70, 1000 56, 998 44 M998 60 C 988 52, 980 44, 974 36 M999 56 C 1010 48, 1020 40, 1026 32"/>
+        <g class="pano-paineira"><circle cx="976" cy="32" r="11"/><circle cx="996" cy="24" r="13"/><circle cx="1018" cy="28" r="12"/><circle cx="1032" cy="40" r="9"/><circle cx="964" cy="42" r="8"/></g>
+        <g class="pano-ipe"><circle cx="860" cy="76" r="16"/><circle cx="884" cy="70" r="14"/><circle cx="872" cy="56" r="13"/><circle cx="846" cy="62" r="11"/><circle cx="898" cy="84" r="10"/></g>
+        <path class="pano-trunk" d="M870 150 C 866 120, 874 100, 870 84 M870 104 C 860 96, 852 86, 848 74 M871 98 C 882 92, 890 84, 894 76"/>
+        <path class="pano-fern" d="M640 150 Q 620 128 600 126 M640 150 Q 636 124 626 108 M640 150 Q 652 126 666 116 M640 150 Q 660 136 680 136 M1120 150 Q 1100 128 1082 126 M1120 150 Q 1118 124 1110 110 M1120 150 Q 1134 128 1150 120"/>
+      </g>
+      <!-- tamanduá-bandeira -->
+      <g class="pano-tamandua">
+        <path class="t-tail" d="M340 128 C 322 112, 304 110, 296 118 C 304 126, 316 140, 338 140 Z"/>
+        <ellipse class="t-body" cx="360" cy="132" rx="23" ry="11"/>
+        <path class="t-snout" d="M380 126 C 392 128, 400 132, 408 138 L 406 140 C 396 138, 388 136, 378 134 Z"/>
+        <path class="t-stripe" d="M350 122 L 374 136"/>
+        <path class="t-legs" d="M346 140 V150 M354 141 V150 M370 140 V150 M377 139 V150"/>
+      </g>
+      <!-- lobo-guará -->
+      <g class="pano-lobo">
+        <path class="l-legs" d="M452 112 L 450 150 M459 113 L 461 150 M483 113 L 481 150 M490 112 L 494 150"/>
+        <path class="l-tail" d="M490 108 C 504 110, 510 122, 506 134 C 500 126, 496 118, 488 114 Z"/>
+        <ellipse class="l-body" cx="472" cy="108" rx="21" ry="9"/>
+        <path class="l-mane" d="M452 104 C 458 98, 466 98, 472 101"/>
+        <path class="l-head" d="M454 104 C 448 96, 444 92, 432 94 L 430 97 C 438 99, 444 104, 452 110 Z"/>
+        <path class="l-ear" d="M446 94 L 448 80 L 452 92 Z M451 95 L 456 82 L 457 95 Z"/>
+      </g>
+      <path class="pano-cracks" d="M40 160 l 20 4 l 14 -3 l 18 5 M140 164 l 16 -4 l 20 3 M260 159 l 18 5 l 24 -2 M380 165 l 22 -4 l 16 3 M480 160 l 18 4"/>
+    </svg>
+  </footer>
 
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
