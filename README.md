@@ -6,6 +6,8 @@ Mostra a chuva dos últimos 7, 14 ou 30 dias e a previsão dos próximos 3 dias,
 
 ## Funcionalidades
 
+- **Cena animada no topo**: um escalador manda um boulder negativo inspirado no Búfalo (V6). Quando o veredito é ruim, chove e ele espera no crash pad, de capa, comendo biscoito.
+- **Régua de tempo**: uma escovinha de escalada desliza pela linha do tempo deixando magnésio.
 - **Mapa** (Leaflet) com os dois picos coloridos pelo veredito, camadas de mapa, satélite e relevo, e radar de chuva opcional (RainViewer).
 - **Chuva por dia**: barras para os dois locais. Clique num dia para avaliar ir nele às 8h.
 - **Chuva hora a hora**: clique ou arraste para escolher o momento avaliado. A faixa sombreada mostra as 72 h consideradas.

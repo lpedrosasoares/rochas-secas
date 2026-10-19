@@ -28,10 +28,10 @@ const SITES = [
 ];
 
 const STATUS = {
-  good: { label: 'Bora', icon: '✓', cls: 's-good', color: '--good', head: 'Rocha deve estar seca' },
-  warning: { label: 'Talvez', icon: '?', cls: 's-warning', color: '--warning', head: 'Confira a rocha no local' },
-  serious: { label: 'Melhor não', icon: '!', cls: 's-serious', color: '--serious', head: 'Provavelmente ainda úmida' },
-  critical: { label: 'Não dá', icon: '✕', cls: 's-critical', color: '--critical', head: 'Rocha molhada' },
+  good: { label: 'Bora', icon: '', cls: 's-good', color: '--good', head: 'Rocha seca. Manda ver!' },
+  warning: { label: 'Talvez', icon: '', cls: 's-warning', color: '--warning', head: 'Leva o magnésio e confere a rocha.' },
+  serious: { label: 'Melhor não', icon: '', cls: 's-serious', color: '--serious', head: 'Arenito ainda úmido. Segura a onda.' },
+  critical: { label: 'Não dá', icon: '', cls: 's-critical', color: '--critical', head: 'Molhou. Fica pra próxima.' },
 };
 
 const RAIN_HOUR = 0.2; // mm/h considerado "choveu"
@@ -209,7 +209,20 @@ function tipRow(site, value) {
 // ---------------------------------------------------------------------------
 // Cartões de veredito
 // ---------------------------------------------------------------------------
+function renderHero() {
+  const order = ['good', 'warning', 'serious', 'critical'];
+  let worst = 'good';
+  $('#hero-status').innerHTML = SITES.map((s) => {
+    const e = evaluate(s.id, state.target);
+    if (order.indexOf(e.status) > order.indexOf(worst)) worst = e.status;
+    const st = STATUS[e.status];
+    return `<span class="hero-chip"><span class="pill ${st.cls}">${st.label}</span>${s.name}</span>`;
+  }).join('');
+  if (typeof Scene !== 'undefined') Scene.setWeather(worst);
+}
+
 function renderCards() {
+  renderHero();
   const wrap = $('#cards');
   wrap.innerHTML = '';
   for (const s of SITES) {
@@ -224,7 +237,7 @@ function renderCards() {
           <div class="card-title"><i class="swatch" style="background:var(${s.color})"></i><h3>${s.name}</h3></div>
           <div class="rock">${s.rock}${s.link ? ` · <a href="${s.link}" target="_blank" rel="noopener">info</a>` : ''}</div>
         </div>
-        <span class="pill ${st.cls}">${st.icon} ${st.label}</span>
+        <span class="pill ${st.cls}">${st.label}</span>
       </div>
       <div class="verdict">${st.head}</div>
       <ul class="reasons">${e.reasons.map((r) => `<li>${r}</li>`).join('')}</ul>
@@ -242,6 +255,15 @@ function renderCards() {
 // Mapa
 // ---------------------------------------------------------------------------
 let map, markers = {}, gridDots = {}, radarLayer = null;
+// Agarra (com o furo do parafuso) como marcador do setor
+function holdIcon(color) {
+  return L.divIcon({
+    className: 'hold-icon',
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+    html: `<svg width="34" height="34" viewBox="0 0 24 24"><path fill-rule="evenodd" fill="${color}" stroke="#17140f" stroke-width="1.1" d="M4 13c-1-4 2-8 7-9 5-1 9 2 9 6 0 3-2 5-4 7-3 3-8 4-10 2-1-1-1-4-2-6zM12 9.2a1.8 1.8 0 1 0 .01 0z"/></svg>`,
+  });
+}
 function initMap() {
   map = L.map('map', { scrollWheelZoom: false }).setView([-23.435, -47.64], 12);
   const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -255,11 +277,11 @@ function initMap() {
   });
   L.control.layers({ 'Mapa': osm, 'Satélite': sat, 'Relevo': topo }, null, { position: 'topright' }).addTo(map);
   L.control.scale({ imperial: false }).addTo(map);
+  map.createPane('radar').style.zIndex = 250;
 
   for (const s of SITES) {
-    markers[s.id] = L.circleMarker([s.lat, s.lon], {
-      radius: 11, weight: 3, color: '#fff', fillOpacity: 1,
-    }).addTo(map).bindTooltip(s.name, { permanent: true, direction: 'right', offset: [12, 0], className: 'site-label' });
+    markers[s.id] = L.marker([s.lat, s.lon], { icon: holdIcon('#999') })
+      .addTo(map).bindTooltip(s.name, { permanent: true, direction: 'right', offset: [16, 0], className: 'site-label' });
     markers[s.id].on('click', () => {
       document.querySelectorAll('.card')[SITES.indexOf(s)]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -271,10 +293,10 @@ function renderMap() {
   for (const s of SITES) {
     const e = evaluate(s.id, state.target);
     const st = STATUS[e.status];
-    markers[s.id].setStyle({ fillColor: cssVar(st.color) });
+    markers[s.id].setIcon(holdIcon(cssVar(st.color)));
     markers[s.id].bindPopup(`
       <b>${s.name}</b><br>
-      <span class="pill ${st.cls}">${st.icon} ${st.label}</span><br>
+      <span class="pill ${st.cls}">${st.label}</span><br>
       ${fmtTime(state.times[state.target])}<br>
       Chuva 72 h: <b>${fmtMm(e.total72)} mm</b><br>
       Última chuva: ${fmtAgo(e.last)}`);
@@ -303,7 +325,7 @@ async function toggleRadar(ev) {
     const f = frames[frames.length - 1];
     if (radarLayer) map.removeLayer(radarLayer);
     radarLayer = L.tileLayer(`${j.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, {
-      opacity: 0.7, maxNativeZoom: 7, maxZoom: 18, attribution: 'Radar © RainViewer',
+      pane: 'radar', opacity: 0.75, maxNativeZoom: 7, maxZoom: 18, attribution: 'Radar © RainViewer',
     }).addTo(map);
     map.setZoom(Math.min(map.getZoom(), 9));
   } catch (err) {
@@ -573,6 +595,7 @@ function renderControls() {
   sl.min = 71;
   sl.max = state.times.length - 1;
   sl.value = state.target;
+  brushTo((state.target - sl.min) / Math.max(1, sl.max - sl.min), brush.dragging);
   const t = state.times[state.target];
   const rel = state.target === state.nowIdx ? 'agora' : state.target > state.nowIdx ? 'previsão' : 'passado';
   $('#target-label').textContent = `${fmtTime(t)} · ${rel}`;
@@ -632,9 +655,97 @@ function initTheme() {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Régua de tempo: escovinha deixando magnésio
+// ---------------------------------------------------------------------------
+const BRUSH_W = 84;
+const BRUSH_TIP = 76; // posição das cerdas dentro da escovinha (px)
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const brush = { p: null, raf: 0, lastPuff: 0, dragging: false, intro: true };
+
+function setBrushP(p) {
+  const el = $('#scrubber');
+  const prev = brush.p;
+  brush.p = p;
+  el.style.setProperty('--p', p);
+  if (prev != null && Math.abs(p - prev) > 0.0004) {
+    chalkPuff(Math.sign(p - prev));
+    if (Math.random() < 0.5) chalkPuff(Math.sign(p - prev), true);
+  }
+}
+
+// Move a escovinha até p (0–1). Sem `instant`, ela escova até lá com easing.
+function brushTo(p, instant) {
+  cancelAnimationFrame(brush.raf);
+  const el = $('#scrubber');
+  if (brush.p == null) brush.p = 0; // primeira vez: escova desde o começo
+  if (instant || reduceMotion) { setBrushP(p); return; }
+  const from = brush.p;
+  if (Math.abs(p - from) < 0.0004) return;
+  const t0 = performance.now();
+  const dur = (brush.intro ? 1400 : 350) + 1100 * Math.abs(p - from);
+  brush.intro = false;
+  el.classList.add('scrubbing');
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - k, 3);
+    setBrushP(from + (p - from) * e);
+    if (k < 1) brush.raf = requestAnimationFrame(step);
+    else { el.classList.remove('scrubbing'); chalkBurst(5); }
+  };
+  brush.raf = requestAnimationFrame(step);
+}
+
+// Nuvenzinha de magnésio saindo das cerdas
+function chalkPuff(dir = 0, force = false) {
+  if (reduceMotion) return;
+  const now = performance.now();
+  if (!force && now - brush.lastPuff < 40) return;
+  brush.lastPuff = now;
+  const el = $('#scrubber');
+  if (el.querySelectorAll('.puff').length > 60) return;
+  const x = brush.p * (el.clientWidth - BRUSH_W) + BRUSH_TIP;
+  const d = document.createElement('span');
+  d.className = 'puff';
+  const size = 14 + Math.random() * 18;
+  d.style.left = `${x + (Math.random() * 8 - 4)}px`;
+  d.style.setProperty('--s', `${size}px`);
+  d.style.setProperty('--dx', `${(-dir * (6 + Math.random() * 18)) + (Math.random() * 10 - 5)}px`);
+  d.style.setProperty('--dy', `${-(8 + Math.random() * 22)}px`);
+  d.style.setProperty('--d', `${0.6 + Math.random() * 0.6}s`);
+  d.addEventListener('animationend', () => d.remove());
+  el.appendChild(d);
+}
+function chalkBurst(n) {
+  for (let i = 0; i < n; i++) chalkPuff((Math.random() - 0.5) * 2, true);
+}
+
+function initBrush() {
+  const el = $('#scrubber');
+  const sl = $('#target-slider');
+  const start = () => { brush.dragging = true; el.classList.add('scrubbing'); };
+  const end = () => { brush.dragging = false; el.classList.remove('scrubbing'); };
+  sl.addEventListener('pointerdown', start);
+  sl.addEventListener('keydown', start);
+  sl.addEventListener('pointerup', end);
+  sl.addEventListener('keyup', end);
+  sl.addEventListener('blur', end);
+  // de vez em quando: batidinha que solta magnésio
+  if (!reduceMotion) {
+    setInterval(() => {
+      if (document.hidden || brush.dragging || brush.p == null || el.classList.contains('scrubbing')) return;
+      el.classList.add('tap');
+      setTimeout(() => chalkBurst(6), 250);
+      setTimeout(() => el.classList.remove('tap'), 720);
+    }, 7000);
+  }
+}
+
 function init() {
   initTheme();
+  if (typeof Scene !== 'undefined') Scene.init();
   initMap();
+  initBrush();
   renderLegend();
 
   $('#range').addEventListener('click', async (ev) => {

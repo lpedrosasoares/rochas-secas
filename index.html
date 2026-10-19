@@ -5,31 +5,98 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rocha Seca</title>
   <meta name="description" content="Choveu no Iperocks e na Flona de Ipanema? Chuva dos últimos dias e previsão para decidir se dá pra escalar.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪨</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4 13c-1-4 2-8 7-9 5-1 9 2 9 6 0 3-2 5-4 7-3 3-8 4-10 2-1-1-1-4-2-6z' fill='%23f5c400' stroke='%23000' stroke-width='1.2'/><circle cx='12' cy='11' r='2' fill='%23000'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="top">
-    <div class="brand">
-      <h1>Rocha Seca</h1>
-      <p class="sub">Choveu no Iperocks e na Flona? Dá pra escalar?</p>
+  <header class="hero">
+    <div class="hero-text">
+      <p class="kicker">Iperó · Araçoiaba da Serra · SP</p>
+      <h1>Rocha<br>Seca</h1>
+      <p class="sub">Choveu no Iperocks e na Flona? Dá pra mandar?</p>
+      <div id="hero-status" class="hero-status" aria-live="polite"></div>
+      <div class="top-actions">
+        <button id="refresh" class="btn" title="Atualizar dados">↻ Atualizar</button>
+        <button id="theme" class="btn" title="Alternar tema" aria-label="Alternar tema">◐</button>
+        <span id="updated" class="upd"></span>
+      </div>
     </div>
-    <div class="top-actions">
-      <span id="updated" class="muted"></span>
-      <button id="refresh" class="btn ghost" title="Atualizar dados">↻ Atualizar</button>
-      <button id="theme" class="btn ghost" title="Alternar tema" aria-label="Alternar tema">◐</button>
+
+    <div class="hero-scene">
+      <svg id="scene" viewBox="0 0 600 300" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Escalador subindo um boulder; quando o veredito é ruim, chove e ele espera sentado no crash pad">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" class="sky1"/>
+            <stop offset="1" class="sky2"/>
+          </linearGradient>
+        </defs>
+        <rect width="600" height="300" fill="url(#sky)"/>
+        <circle class="sun" cx="110" cy="72" r="26"/>
+        <g class="clouds">
+          <g class="cloud c1"><ellipse cx="200" cy="58" rx="34" ry="12"/><ellipse cx="222" cy="50" rx="22" ry="13"/><ellipse cx="182" cy="52" rx="16" ry="10"/></g>
+          <g class="cloud c2"><ellipse cx="470" cy="40" rx="30" ry="10"/><ellipse cx="488" cy="33" rx="18" ry="11"/></g>
+          <g class="cloud c3 storm"><ellipse cx="330" cy="36" rx="60" ry="18"/><ellipse cx="370" cy="26" rx="34" ry="18"/><ellipse cx="290" cy="30" rx="30" ry="14"/></g>
+          <g class="cloud c4 storm"><ellipse cx="80" cy="44" rx="56" ry="16"/><ellipse cx="110" cy="34" rx="30" ry="15"/></g>
+          <g class="cloud c5 storm"><ellipse cx="540" cy="58" rx="50" ry="15"/><ellipse cx="520" cy="48" rx="26" ry="13"/></g>
+        </g>
+        <!-- Morro Araçoiaba ao fundo -->
+        <path class="hill-far" d="M0 215 C 50 205, 90 168, 150 150 C 200 136, 240 150, 280 168 C 330 190, 380 184, 430 176 C 490 166, 540 178, 600 190 L600 300 L0 300 Z"/>
+        <path class="hill-near" d="M0 250 C 60 236, 120 240, 180 246 C 260 254, 420 240, 600 248 L600 300 L0 300 Z"/>
+        <g class="trees">
+          <path d="M40 262 l12 -40 l12 40 Z"/><path d="M62 266 l10 -32 l10 32 Z"/><path d="M150 262 l9 -28 l9 28 Z"/>
+          <circle cx="572" cy="238" r="16"/><circle cx="556" cy="246" r="12"/><rect x="569" y="246" width="5" height="20"/>
+        </g>
+        <rect class="ground" x="0" y="280" width="600" height="20"/>
+        <!-- crash pads: um sob o teto (saída sentada) e um para a descida -->
+        <rect class="pad" x="244" y="275" width="84" height="10" rx="3"/>
+        <path class="pad-line" d="M286 275 V285"/>
+        <rect class="pad pad-2" x="117" y="275" width="86" height="10" rx="3"/>
+        <path class="pad-line" d="M160 275 V285"/>
+        <!-- bloco Búfalo: corcova e um "focinho" negativo (teto) -->
+        <path class="rock" d="M330 285 C 318 262, 300 245, 270 228 C 245 214, 222 206, 204 198 C 196 194, 194 186, 199 177 C 205 166, 214 158, 224 150 C 244 134, 280 114, 330 108 C 380 102, 430 116, 470 140 C 510 166, 545 222, 560 285 Z"/>
+        <path class="rock-shade" d="M330 285 C 318 262, 300 245, 270 228 C 245 214, 222 206, 204 198 C 214 214, 250 230, 282 252 C 300 264, 312 276, 316 285 Z"/>
+        <path class="rock-shade" d="M470 140 C 510 166, 545 222, 560 285 L 500 285 C 504 236, 492 182, 470 140 Z"/>
+        <path class="strata" d="M232 168 C 300 150, 400 150, 486 168 M262 206 C 340 190, 440 196, 520 214 M320 250 C 380 238, 470 242, 548 254"/>
+        <g id="route-holds"></g>
+        <g id="chalk-ticks"></g>
+        <g id="climber"></g>
+        <g id="scene-puffs"></g>
+        <g id="rain"></g>
+      </svg>
     </div>
   </header>
+  <div class="rope" aria-hidden="true"></div>
 
   <main>
-    <section class="controls" aria-label="Quando você vai escalar?">
+    <section class="controls board" aria-label="Quando você vai escalar?">
       <div class="ctrl-group">
         <span class="ctrl-label">Quando você vai?</span>
         <div id="presets" class="seg" role="group"></div>
       </div>
       <div class="ctrl-group slider-group">
-        <input id="target-slider" type="range" min="0" max="0" value="0" aria-label="Momento avaliado">
+        <div id="scrubber" class="scrubber">
+          <div class="scrub-track"><div class="chalk-trail"></div></div>
+          <div class="brush" aria-hidden="true">
+          <svg viewBox="0 0 84 48" width="84" height="48">
+            <ellipse cx="64" cy="45.3" rx="18" ry="2" fill="rgba(0,0,0,0.2)"/>
+            <g class="brush-body" transform="rotate(9 64 44)">
+              <rect x="49" y="31" width="31" height="12.6" rx="1.5" fill="#f1e4c8"/>
+              <path d="M51 32 L51.6 44.2" stroke="#9c7a4a" stroke-width="0.9"/><path d="M53 32 L53.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M55 32 L55.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M57 32 L57.6 44.2" stroke="#9c7a4a" stroke-width="0.9"/><path d="M59 32 L59.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M61 32 L61.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M63 32 L63.6 44.2" stroke="#9c7a4a" stroke-width="0.9"/><path d="M65 32 L65.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M67 32 L67.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M69 32 L69.6 44.2" stroke="#9c7a4a" stroke-width="0.9"/><path d="M71 32 L71.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M73 32 L73.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M75 32 L75.6 44.2" stroke="#9c7a4a" stroke-width="0.9"/><path d="M77 32 L77.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/><path d="M79 32 L79.6 43.4" stroke="#9c7a4a" stroke-width="0.9"/>
+              <rect x="49" y="39" width="31" height="5" fill="#fff" opacity="0.75"/>
+              <rect x="4" y="21" width="77" height="11" rx="5.5" fill="#c98d55" stroke="#6e4220" stroke-width="1.1"/>
+              <path d="M14 24.5 C 28 23, 40 26.5, 56 24.5 M20 28.5 C 34 27, 48 30, 74 28" stroke="#a8703d" stroke-width="0.9" fill="none"/>
+              <path d="M47 21.5 V31.5" stroke="#6e4220" stroke-width="1.1"/>
+              <circle cx="10.5" cy="26.5" r="2.3" fill="#fffdf8" stroke="#6e4220" stroke-width="0.9"/>
+              <path d="M10.5 24.2 C 2 18, 0 30, 9 30" stroke="#e2457a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            </g>
+          </svg>
+          </div>
+          <input id="target-slider" type="range" min="0" max="0" value="0" aria-label="Momento avaliado">
+        </div>
         <span id="target-label" class="target-label"></span>
       </div>
       <div class="ctrl-group">
@@ -45,59 +112,60 @@
     <section id="cards" class="cards" aria-live="polite"></section>
 
     <section class="grid">
-      <div class="panel map-panel">
+      <div class="panel board map-panel">
         <div class="panel-head">
-          <h2>Mapa</h2>
+          <h2 class="tape t-yellow">Setores</h2>
           <label class="chk"><input type="checkbox" id="radar-toggle"> Radar (últimas 2h)</label>
         </div>
         <div id="map"></div>
-        <p class="note">Pontos pequenos = célula da grade do modelo de onde vêm os dados (~10 km). A localização da Flona é aproximada (Morro Araçoiaba).</p>
+        <p class="note">Agarras = setores, na cor do veredito. Pontos pequenos = célula da grade do modelo (~10 km). A localização da Flona é aproximada (Morro Araçoiaba).</p>
       </div>
 
-      <div class="panel">
+      <div class="panel board">
         <div class="panel-head">
-          <h2>Chuva por dia <span class="muted">(mm)</span></h2>
+          <h2 class="tape t-teal">Chuva por dia <span class="unit">mm</span></h2>
           <div class="legend" id="legend-daily"></div>
         </div>
         <div id="daily-chart" class="chart" role="img" aria-label="Gráfico de chuva diária"></div>
         <p class="hint">Clique num dia para avaliar ir nele às 8h.</p>
       </div>
 
-      <div class="panel wide">
+      <div class="panel board wide">
         <div class="panel-head">
-          <h2>Chuva hora a hora <span class="muted">(mm/h)</span></h2>
-          <span class="muted small">Faixa sombreada = 72 h antes do momento avaliado</span>
+          <h2 class="tape t-pink">Hora a hora <span class="unit">mm/h</span></h2>
+          <span class="note">Faixa sombreada = 72 h antes do momento avaliado</span>
         </div>
         <div id="hourly-chart" class="chart" role="img" aria-label="Gráfico de chuva horária"></div>
         <p class="hint">Clique ou arraste no gráfico para escolher o momento avaliado.</p>
       </div>
 
-      <div class="panel wide">
+      <div class="panel board wide">
         <details>
-          <summary>Tabela diária</summary>
+          <summary><span class="tape t-violet">Tabela diária</span></summary>
           <div id="table-wrap" class="table-wrap"></div>
         </details>
       </div>
     </section>
 
-    <section class="panel about">
-      <h2>Como o veredito é calculado</h2>
-      <p>A partir do momento escolhido, o app soma a chuva das <b>24 h</b>, das <b>24–48 h</b> e das <b>48–72 h</b> anteriores, e olha a previsão para as 6 h seguintes.
-        Iperocks é <b>arenito</b>: molhado, ele perde resistência e as agarras quebram. A regra usual é esperar 24 a 48 h sem chuva, e mais se choveu muito ou o ar está úmido.</p>
+    <section class="panel board about">
+      <h2 class="tape t-yellow">Beta</h2>
+      <p>A partir do momento escolhido, o app soma a chuva das <b>24 h</b>, das <b>24–48 h</b> e das <b>48–72 h</b> anteriores, e olha a previsão das 6 h seguintes.
+        Iperocks é <b>arenito</b>: molhado, perde resistência e as agarras quebram. Espere 24 a 48 h sem chuva, e mais se choveu muito ou o ar está úmido.</p>
       <ul class="rules">
-        <li><span class="pill s-critical">✕ Não dá</span> mais de 2 mm nas últimas 24 h, ou chuva prevista durante a sessão.</li>
-        <li><span class="pill s-serious">! Melhor não</span> choveu nas últimas 24 h, ou mais de 5 mm entre 24 e 48 h, ou mais de 20 mm em 72 h.</li>
-        <li><span class="pill s-warning">? Talvez</span> mais de 5 mm em 72 h, ou umidade média acima de 90% nas últimas 12 h.</li>
-        <li><span class="pill s-good">✓ Bora</span> seco o bastante.</li>
+        <li><span class="pill s-critical">Não dá</span> mais de 2 mm em 24 h, ou chuva prevista durante a sessão.</li>
+        <li><span class="pill s-serious">Melhor não</span> choveu em 24 h, ou mais de 5 mm entre 24–48 h, ou mais de 20 mm em 72 h.</li>
+        <li><span class="pill s-warning">Talvez</span> mais de 5 mm em 72 h, ou umidade média acima de 90% em 12 h.</li>
+        <li><span class="pill s-good">Bora</span> seco o bastante.</li>
       </ul>
-      <p class="muted small">Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (modelo, não pluviômetro), radar <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a>, mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
-        É uma estimativa: chuva de verão é muito localizada. Na dúvida, toque a rocha. Se a areia sai na mão, volte outro dia.</p>
+      <p class="callout">Na dúvida, toque a rocha. Se a areia sai na mão, volte outro dia.</p>
+      <p class="note">Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (modelo, não pluviômetro) · radar <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> · mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Chuva de verão é localizada, isto é uma estimativa.</p>
     </section>
   </main>
 
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="js/scene.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
