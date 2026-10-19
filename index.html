@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rocha Seca</title>
+  <meta name="description" content="Choveu no Iperocks e na Flona de Ipanema? Chuva dos últimos dias e previsão para decidir se dá pra escalar.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪨</text></svg>">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>Rocha Seca</h1>
+      <p class="sub">Choveu no Iperocks e na Flona? Dá pra escalar?</p>
+    </div>
+    <div class="top-actions">
+      <span id="updated" class="muted"></span>
+      <button id="refresh" class="btn ghost" title="Atualizar dados">↻ Atualizar</button>
+      <button id="theme" class="btn ghost" title="Alternar tema" aria-label="Alternar tema">◐</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls" aria-label="Quando você vai escalar?">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Quando você vai?</span>
+        <div id="presets" class="seg" role="group"></div>
+      </div>
+      <div class="ctrl-group slider-group">
+        <input id="target-slider" type="range" min="0" max="0" value="0" aria-label="Momento avaliado">
+        <span id="target-label" class="target-label"></span>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Histórico</span>
+        <div id="range" class="seg" role="group">
+          <button data-days="7">7 dias</button>
+          <button data-days="14" class="on">14 dias</button>
+          <button data-days="30">30 dias</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="cards" class="cards" aria-live="polite"></section>
+
+    <section class="grid">
+      <div class="panel map-panel">
+        <div class="panel-head">
+          <h2>Mapa</h2>
+          <label class="chk"><input type="checkbox" id="radar-toggle"> Radar (últimas 2h)</label>
+        </div>
+        <div id="map"></div>
+        <p class="note">Pontos pequenos = célula da grade do modelo de onde vêm os dados (~10 km). A localização da Flona é aproximada (Morro Araçoiaba).</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Chuva por dia <span class="muted">(mm)</span></h2>
+          <div class="legend" id="legend-daily"></div>
+        </div>
+        <div id="daily-chart" class="chart" role="img" aria-label="Gráfico de chuva diária"></div>
+        <p class="hint">Clique num dia para avaliar ir nele às 8h.</p>
+      </div>
+
+      <div class="panel wide">
+        <div class="panel-head">
+          <h2>Chuva hora a hora <span class="muted">(mm/h)</span></h2>
+          <span class="muted small">Faixa sombreada = 72 h antes do momento avaliado</span>
+        </div>
+        <div id="hourly-chart" class="chart" role="img" aria-label="Gráfico de chuva horária"></div>
+        <p class="hint">Clique ou arraste no gráfico para escolher o momento avaliado.</p>
+      </div>
+
+      <div class="panel wide">
+        <details>
+          <summary>Tabela diária</summary>
+          <div id="table-wrap" class="table-wrap"></div>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel about">
+      <h2>Como o veredito é calculado</h2>
+      <p>A partir do momento escolhido, o app soma a chuva das <b>24 h</b>, das <b>24–48 h</b> e das <b>48–72 h</b> anteriores, e olha a previsão para as 6 h seguintes.
+        Iperocks é <b>arenito</b>: molhado, ele perde resistência e as agarras quebram. A regra usual é esperar 24 a 48 h sem chuva, e mais se choveu muito ou o ar está úmido.</p>
+      <ul class="rules">
+        <li><span class="pill s-critical">✕ Não dá</span> mais de 2 mm nas últimas 24 h, ou chuva prevista durante a sessão.</li>
+        <li><span class="pill s-serious">! Melhor não</span> choveu nas últimas 24 h, ou mais de 5 mm entre 24 e 48 h, ou mais de 20 mm em 72 h.</li>
+        <li><span class="pill s-warning">? Talvez</span> mais de 5 mm em 72 h, ou umidade média acima de 90% nas últimas 12 h.</li>
+        <li><span class="pill s-good">✓ Bora</span> seco o bastante.</li>
+      </ul>
+      <p class="muted small">Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (modelo, não pluviômetro), radar <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a>, mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
+        É uma estimativa: chuva de verão é muito localizada. Na dúvida, toque a rocha. Se a areia sai na mão, volte outro dia.</p>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
