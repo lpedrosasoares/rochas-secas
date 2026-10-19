@@ -159,6 +159,26 @@ h1 {
 #scene .pad-line { stroke: #17140f; stroke-width: 1.2; }
 #scene .pad-2 { fill: var(--pink); }
 /* modo chuva: capa amarela + biscoito */
+/* cachorro caramelo: rabo abanando, respirando, orelha mexendo */
+#scene .dog-tail { transform-box: view-box; transform-origin: 69px 276px; animation: wag 0.45s ease-in-out infinite alternate; }
+#scene .dog-body { transform-box: fill-box; transform-origin: center bottom; animation: breathe 2.6s ease-in-out infinite; }
+#scene .dog-ear { transform-box: fill-box; transform-origin: top right; animation: ear 6s ease-in-out infinite; }
+#scene .dog-flip { transform-box: fill-box; transform-origin: 50% 70%; }
+#scene .dog-flip.flip { animation: dogflip 1.1s cubic-bezier(.3,.6,.4,1); }
+@keyframes dogflip {
+  0% { transform: translateY(0) rotate(0); }
+  15% { transform: translateY(2px) scaleY(0.85); }
+  50% { transform: translateY(-40px) rotate(-200deg); }
+  80% { transform: translateY(-4px) rotate(-360deg); }
+  90% { transform: translateY(1px) rotate(-360deg) scaleY(0.9); }
+  100% { transform: translateY(0) rotate(-360deg); }
+}
+@keyframes wag { from { transform: rotate(-8deg); } to { transform: rotate(10deg); } }
+@keyframes breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.06); } }
+@keyframes ear { 0%, 90%, 100% { transform: rotate(0); } 93% { transform: rotate(-18deg); } 96% { transform: rotate(6deg); } }
+#scene.rainy .dog-tail { animation-duration: 1.4s; }
+@media (prefers-reduced-motion: reduce) { #scene .dog-tail, #scene .dog-body, #scene .dog-ear { animation: none !important; } }
+#scene.rainy #spotters { display: none; } /* na chuva os amigos foram pro carro */
 #climber .coat, #climber .hood, #climber .cookie { display: none; }
 #climber.rainwear .coat, #climber.rainwear .hood, #climber.rainwear .cookie { display: inline; }
 #climber.rainwear .beanie, #climber.rainwear .bag { display: none; }
