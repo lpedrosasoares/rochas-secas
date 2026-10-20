@@ -548,6 +548,176 @@ function renderHourly() {
 }
 
 // ---------------------------------------------------------------------------
+// Gráfico de chuva acumulada: por dias (período carregado, hora a hora)
+// ou por mês (desde o dia 1, dia a dia)
+// ---------------------------------------------------------------------------
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+state.cumMode = 'dias';
+state.month = null; // { key, days, sum: { id: [] } }
+
+async function loadMonth() {
+  const today = state.times[state.nowIdx].slice(0, 10);
+  const key = today.slice(0, 7);
+  if (state.month && state.month.key === key) return;
+  const pastDays = Math.max(0, Number(today.slice(8, 10)) - 1);
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + `?latitude=${SITES.map((x) => x.lat).join(',')}&longitude=${SITES.map((x) => x.lon).join(',')}`
+    + '&daily=precipitation_sum'
+    + `&past_days=${pastDays}&forecast_days=${FORECAST_DAYS}`
+    + `&timezone=${encodeURIComponent(TZ)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Open-Meteo respondeu ${res.status}`);
+  let json = await res.json();
+  if (!Array.isArray(json)) json = [json];
+  // só os dias do mês atual
+  const days = json[0].daily.time.filter((d) => d.startsWith(key));
+  const sum = {};
+  SITES.forEach((x, i) => {
+    sum[x.id] = json[i].daily.time.map((d, k) => [d, json[i].daily.precipitation_sum[k]]).filter(([d]) => d.startsWith(key)).map(([, v]) => v);
+  });
+  state.month = { key, days, sum };
+}
+
+function cumulativeData() {
+  if (state.cumMode === 'mes' && state.month) {
+    const { days, sum, key } = state.month;
+    const today = state.times[state.nowIdx].slice(0, 10);
+    const targetDay = state.times[state.target].slice(0, 10);
+    const cum = {};
+    SITES.forEach((x) => { let acc = 0; cum[x.id] = sum[x.id].map((v) => (acc += v || 0)); });
+    return {
+      n: days.length,
+      cum,
+      nowIdx: Math.max(0, days.indexOf(today)),
+      targetIdx: days.indexOf(targetDay),
+      window: null,
+      unit: `mm em ${MESES[Number(key.slice(5, 7)) - 1]}`,
+      ticks: days.map((d, i) => ({ i, top: String(Number(d.slice(8, 10))), bottom: WD[weekday(d)] })),
+      tipTitle: (i) => fmtDay(days[i]) + (days[i] > today ? ' <span class="muted">(previsão)</span>' : ''),
+      toTarget: (i) => {
+        let t = state.times.indexOf(`${days[i]}T08:00`);
+        if (t < 0) t = state.times.findIndex((x) => x.startsWith(days[i]));
+        return t;
+      },
+    };
+  }
+  const T = state.times;
+  const cum = {};
+  SITES.forEach((x) => { let acc = 0; cum[x.id] = state.hourly[x.id].precip.map((v) => (acc += v || 0)); });
+  const ticks = [];
+  T.forEach((t, i) => { if (t.endsWith('T00:00')) ticks.push({ i: i + 12, top: WD[weekday(t.slice(0, 10))], bottom: fmtDay(t.slice(0, 10), false) }); });
+  return {
+    n: T.length,
+    cum,
+    nowIdx: state.nowIdx,
+    targetIdx: state.target,
+    window: [Math.max(0, state.target - 71), state.target],
+    unit: `mm desde ${fmtDay(T[0].slice(0, 10), false)}`,
+    ticks,
+    tipTitle: (i) => fmtTime(T[i]) + (i > state.nowIdx ? ' <span class="muted">(previsão)</span>' : ''),
+    toTarget: (i) => i,
+  };
+}
+
+function renderCumulative() {
+  const box = $('#cum-chart');
+  box.innerHTML = '';
+  document.querySelectorAll('#cum-mode button').forEach((b) => b.classList.toggle('on', b.dataset.mode === state.cumMode));
+  if (state.cumMode === 'mes' && !state.month) {
+    box.innerHTML = '<p class="note">carregando o mês…</p>';
+    loadMonth().then(renderCumulative).catch((err) => { box.innerHTML = `<p class="note">Não consegui carregar o mês (${err.message}).</p>`; });
+    return;
+  }
+  const D = cumulativeData();
+  const W = box.clientWidth || 800;
+  const H = W < 500 ? 200 : 240;
+  const m = { l: 34, r: 104, t: 14, b: 34 };
+  const pw = W - m.l - m.r;
+  const ph = H - m.t - m.b;
+  const n = D.n;
+  const xOf = (i) => m.l + (i / Math.max(1, n - 1)) * pw;
+
+  let max = 0;
+  SITES.forEach((x) => { max = Math.max(max, D.cum[x.id][n - 1] || 0); });
+  const ymax = niceMax(Math.max(max, 2));
+  const y = (v) => m.t + ph - (v / ymax) * ph;
+  $('#cum-unit').textContent = D.unit;
+
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, height: H });
+
+  // previsão e janela de 72 h
+  const fx = xOf(D.nowIdx);
+  svgEl('rect', { x: fx, y: m.t, width: Math.max(0, m.l + pw - fx), height: ph, fill: 'var(--forecast)' }, svg);
+  if (fx < m.l + pw - 40) svgEl('text', { x: fx + 4, y: m.t + 10 }, svg).textContent = 'previsão';
+  if (D.window) svgEl('rect', { x: xOf(D.window[0]), y: m.t, width: xOf(D.window[1]) - xOf(D.window[0]), height: ph, fill: 'var(--window)' }, svg);
+
+  // grade + eixo y
+  [0, ymax / 2, ymax].forEach((v) => {
+    svgEl('line', { x1: m.l, x2: m.l + pw, y1: y(v), y2: y(v), class: v === 0 ? 'base-line' : 'grid-line' }, svg);
+    svgEl('text', { x: m.l - 6, y: y(v) + 4, 'text-anchor': 'end' }, svg).textContent = fmtMm(v);
+  });
+
+  // eixo x (rótulos afinados conforme o espaço)
+  const step = Math.max(1, Math.ceil(D.ticks.length / Math.max(1, Math.floor(pw / 38))));
+  D.ticks.forEach((tk, j) => {
+    if ((D.ticks.length - 1 - j) % step !== 0) return;
+    const cx = xOf(Math.min(n - 1, tk.i));
+    svgEl('text', { x: cx, y: H - m.b + 14, 'text-anchor': 'middle' }, svg).textContent = tk.top;
+    svgEl('text', { x: cx, y: H - m.b + 27, 'text-anchor': 'middle' }, svg).textContent = tk.bottom;
+  });
+
+  // curvas: sólida no passado, tracejada na previsão; rótulo direto no fim
+  const linePath = (arr, a, b) => arr.slice(a, b + 1).map((v, k) => `${k ? 'L' : 'M'}${xOf(a + k).toFixed(1)},${y(v).toFixed(1)}`).join('');
+  const ends = [];
+  SITES.forEach((x) => {
+    const c = D.cum[x.id];
+    svgEl('path', { d: linePath(c, 0, D.nowIdx), fill: 'none', stroke: `var(${x.color})`, 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
+    if (D.nowIdx < n - 1) svgEl('path', { d: linePath(c, D.nowIdx, n - 1), fill: 'none', stroke: `var(${x.color})`, 'stroke-width': 2, 'stroke-dasharray': '4 4', 'stroke-linejoin': 'round' }, svg);
+    ends.push({ x, v: c[n - 1], y: y(c[n - 1]) });
+  });
+  ends.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 15) ends[i].y = ends[i - 1].y + 15;
+  ends.forEach((e) => {
+    svgEl('circle', { cx: xOf(n - 1), cy: y(e.v), r: 3, fill: `var(${e.x.color})` }, svg);
+    svgEl('text', { x: xOf(n - 1) + 8, y: e.y + 4, class: 'val-label' }, svg).textContent = `${e.x.name.split(' ')[0]} ${fmtMm(e.v)} mm`;
+  });
+
+  // horário avaliado
+  if (D.targetIdx >= 0) {
+    const tx = xOf(D.targetIdx);
+    svgEl('line', { x1: tx, x2: tx, y1: m.t, y2: m.t + ph, class: 'target-line' }, svg);
+  }
+
+  // hover + clique/arraste
+  const hoverLine = svgEl('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--muted)', 'stroke-width': 1, opacity: 0 }, svg);
+  const dots = SITES.map((x) => svgEl('circle', { r: 4, fill: `var(${x.color})`, stroke: 'var(--surface)', 'stroke-width': 2, opacity: 0 }, svg));
+  const overlay = svgEl('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent', style: 'cursor:crosshair' }, svg);
+  const idxAt = (ev) => {
+    const r = svg.getBoundingClientRect();
+    const px = (ev.clientX - r.left) * (W / r.width);
+    return Math.max(0, Math.min(n - 1, Math.round(((px - m.l) / pw) * (n - 1))));
+  };
+  let dragging = false;
+  const pick = (i, light) => { const t = D.toTarget(i); if (t >= 0) setTarget(t, light); };
+  overlay.addEventListener('pointerdown', (ev) => { dragging = true; overlay.setPointerCapture(ev.pointerId); pick(idxAt(ev), true); });
+  overlay.addEventListener('pointerup', () => { dragging = false; renderAll(); });
+  overlay.addEventListener('pointermove', (ev) => {
+    const i = idxAt(ev);
+    hoverLine.setAttribute('x1', xOf(i)); hoverLine.setAttribute('x2', xOf(i)); hoverLine.setAttribute('opacity', 1);
+    SITES.forEach((x, k) => { dots[k].setAttribute('cx', xOf(i)); dots[k].setAttribute('cy', y(D.cum[x.id][i])); dots[k].setAttribute('opacity', 1); });
+    showTip(`<div class="t">${D.tipTitle(i)}</div>` + SITES.map((x) => tipRow(x, `${fmtMm(D.cum[x.id][i])} mm`)).join(''), ev);
+    if (dragging) pick(i, true);
+  });
+  overlay.addEventListener('pointerleave', () => {
+    hoverLine.setAttribute('opacity', 0); dots.forEach((d) => d.setAttribute('opacity', 0)); hideTip();
+  });
+
+  box.appendChild(svg);
+  $('#legend-cum').innerHTML = SITES.map((x) => `<span><i class="swatch" style="background:var(${x.color})"></i>${x.name}</span>`).join('')
+    + '<span class="muted">tracejado: previsão</span>';
+}
+
+// ---------------------------------------------------------------------------
 // Tabela
 // ---------------------------------------------------------------------------
 function renderTable() {
@@ -623,6 +793,7 @@ function renderAll() {
   renderMap();
   renderDaily();
   renderHourly();
+  renderCumulative();
   renderTable();
 }
 
@@ -630,6 +801,7 @@ async function refresh() {
   $('#updated').textContent = 'carregando…';
   try {
     await loadData();
+    state.month = null;
     const now = new Date().toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
     $('#updated').textContent = `atualizado ${now}`;
     renderAll();
@@ -758,11 +930,17 @@ function init() {
   $('#target-slider').addEventListener('input', (ev) => setTarget(Number(ev.target.value), true));
   $('#target-slider').addEventListener('change', (ev) => setTarget(Number(ev.target.value)));
   $('#refresh').addEventListener('click', refresh);
+  $('#cum-mode').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    state.cumMode = b.dataset.mode;
+    renderCumulative();
+  });
 
   let rt;
   window.addEventListener('resize', () => {
     clearTimeout(rt);
-    rt = setTimeout(() => { if (state.times.length) { renderDaily(); renderHourly(); } }, 150);
+    rt = setTimeout(() => { if (state.times.length) { renderDaily(); renderHourly(); renderCumulative(); } }, 150);
   });
 
   refresh();
