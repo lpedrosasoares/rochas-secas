@@ -10,6 +10,11 @@
   --axis: #bdbdb8;
   --hair: rgba(0, 0, 0, 0.12);
   --hatch: none;
+  /* gráficos em preto e cinza */
+  --series-1: #111;
+  --series-2: #8a8a86;
+  --window: rgba(0, 0, 0, 0.07);
+  --forecast: rgba(0, 0, 0, 0.04);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -21,6 +26,10 @@
     --grid: #262626;
     --axis: #444;
     --hair: rgba(255, 255, 255, 0.12);
+    --series-1: #eee;
+    --series-2: #7d7d79;
+    --window: rgba(255, 255, 255, 0.08);
+    --forecast: rgba(255, 255, 255, 0.04);
   }
 }
 :root[data-theme="dark"] {
@@ -32,6 +41,10 @@
   --grid: #262626;
   --axis: #444;
   --hair: rgba(255, 255, 255, 0.12);
+  --series-1: #eee;
+  --series-2: #7d7d79;
+  --window: rgba(255, 255, 255, 0.08);
+  --forecast: rgba(255, 255, 255, 0.04);
 }
 
 body { background: var(--page-bg); background-image: none; }

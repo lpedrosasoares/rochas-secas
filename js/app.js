@@ -10,16 +10,16 @@ const SITES = [
   {
     id: 'iperocks',
     name: 'Iperocks',
-    rock: 'Boulder · arenito',
+    rock: 'Boulder',
     lat: -23.41943,
     lon: -47.6631,
     color: '--series-1',
-    link: 'https://www.mountainproject.com/area/114127722/iperocks-bouldering',
+    link: null,
   },
   {
     id: 'flona',
     name: 'Flona de Ipanema',
-    rock: 'Vias · Morro Araçoiaba',
+    rock: 'Vias',
     lat: -23.4508,
     lon: -47.6174,
     color: '--series-2',
@@ -28,10 +28,10 @@ const SITES = [
 ];
 
 const STATUS = {
-  good: { label: 'Bora', icon: '', cls: 's-good', color: '--good', head: 'Seco feito o sertão.' },
-  warning: { label: 'Talvez', icon: '', cls: 's-warning', color: '--warning', head: 'Confira a rocha.' },
-  serious: { label: 'Melhor não', icon: '', cls: 's-serious', color: '--serious', head: 'Ainda úmido.' },
-  critical: { label: 'Não dá', icon: '', cls: 's-critical', color: '--critical', head: 'Choveu. Fica pra próxima.' },
+  good: { label: 'Bora', icon: '', cls: 's-good', color: '--good', head: 'Rocha seca.' },
+  warning: { label: 'Talvez', icon: '', cls: 's-warning', color: '--warning', head: 'Pode estar úmida.' },
+  serious: { label: 'Melhor não', icon: '', cls: 's-serious', color: '--serious', head: 'Ainda úmida.' },
+  critical: { label: 'Não dá', icon: '', cls: 's-critical', color: '--critical', head: 'Rocha molhada.' },
 };
 
 const RAIN_HOUR = 0.2; // mm/h considerado "choveu"
@@ -77,11 +77,10 @@ function fmtMm(v) {
   return v < 10 ? v.toFixed(1).replace('.', ',') : Math.round(v).toString();
 }
 function fmtAgo(h) {
-  if (h == null) return 'sem chuva no período';
+  if (h == null) return '–';
   if (h < 1) return 'agora';
   if (h < 48) return `${h} h`;
-  const d = Math.floor(h / 24);
-  return `${d} d ${h % 24} h`;
+  return `${Math.floor(h / 24)} dias`;
 }
 function sumRange(arr, a, b) {
   let s = 0;
@@ -172,15 +171,15 @@ function evaluate(siteId, idx) {
     if (order.indexOf(s) > order.indexOf(status)) status = s;
   };
 
-  if (r24 > 2) { bump('critical'); reasons.push(`${fmtMm(r24)} mm nas últimas 24 h.`); }
-  else if (r24 >= 0.5) { bump('serious'); reasons.push('Garoou nas últimas 24 h.'); }
-  if (next6 >= 1) { bump('critical'); reasons.push('Chuva prevista nas próximas 6 h.'); }
-  else if (prob6 >= 60 && idx >= state.nowIdx) { bump('warning'); reasons.push(`${prob6}% de chance de chuva nas próximas 6 h.`); }
-  if (r48 > 5) { bump('serious'); reasons.push(`${fmtMm(r48)} mm ontem.`); }
-  if (total72 > 20) { bump('serious'); reasons.push(`${fmtMm(total72)} mm em 3 dias.`); }
-  else if (total72 > 5) { bump('warning'); reasons.push(`${fmtMm(total72)} mm em 3 dias.`); }
-  if (rh12 != null && rh12 > 90) { bump('warning'); reasons.push(`Ar úmido (${Math.round(rh12)}%).`); }
-  if (!reasons.length) reasons.push(last == null ? 'Sem chuva no período.' : `Sem chuva há ${fmtAgo(last)}.`);
+  if (r24 > 2) { bump('critical'); reasons.push(`Choveu ${fmtMm(r24)} mm hoje.`); }
+  else if (r24 >= 0.5) { bump('serious'); reasons.push('Garoou hoje.'); }
+  if (next6 >= 1) { bump('critical'); reasons.push('Vai chover.'); }
+  else if (prob6 >= 60 && idx >= state.nowIdx) { bump('warning'); reasons.push(`${prob6}% de chance de chuva.`); }
+  if (r48 > 5) { bump('serious'); reasons.push(`Choveu ${fmtMm(r48)} mm ontem.`); }
+  if (total72 > 20) { bump('serious'); reasons.push(`Choveu ${fmtMm(total72)} mm em 3 dias.`); }
+  else if (total72 > 5) { bump('warning'); reasons.push(`Choveu ${fmtMm(total72)} mm em 3 dias.`); }
+  if (rh12 != null && rh12 > 90) { bump('warning'); reasons.push('Ar úmido.'); }
+  if (!reasons.length) reasons.push(last == null ? 'Sem chuva.' : `Sem chuva há ${fmtAgo(last)}.`);
 
   return { status, r24, r48, r72, total72, next6, rh12, last, reasons };
 }
