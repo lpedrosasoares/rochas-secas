@@ -10,7 +10,7 @@ const SITES = [
   {
     id: 'iperocks',
     name: 'Iperocks',
-    rock: 'Arenito · boulder · Iperó',
+    rock: 'Boulder · arenito',
     lat: -23.41943,
     lon: -47.6631,
     color: '--series-1',
@@ -19,7 +19,7 @@ const SITES = [
   {
     id: 'flona',
     name: 'Flona de Ipanema',
-    rock: 'Morro Araçoiaba · vias · local aproximado',
+    rock: 'Vias · Morro Araçoiaba',
     lat: -23.4508,
     lon: -47.6174,
     color: '--series-2',
@@ -28,10 +28,10 @@ const SITES = [
 ];
 
 const STATUS = {
-  good: { label: 'Bora', icon: '', cls: 's-good', color: '--good', head: 'Seco feito o sertão. Manda ver!' },
-  warning: { label: 'Talvez', icon: '', cls: 's-warning', color: '--warning', head: 'Leva o magnésio e confere a rocha.' },
-  serious: { label: 'Melhor não', icon: '', cls: 's-serious', color: '--serious', head: 'Arenito ainda úmido. Segura a onda.' },
-  critical: { label: 'Não dá', icon: '', cls: 's-critical', color: '--critical', head: 'Choveu no sertão. Fica pra próxima.' },
+  good: { label: 'Bora', icon: '', cls: 's-good', color: '--good', head: 'Seco feito o sertão.' },
+  warning: { label: 'Talvez', icon: '', cls: 's-warning', color: '--warning', head: 'Confira a rocha.' },
+  serious: { label: 'Melhor não', icon: '', cls: 's-serious', color: '--serious', head: 'Ainda úmido.' },
+  critical: { label: 'Não dá', icon: '', cls: 's-critical', color: '--critical', head: 'Choveu. Fica pra próxima.' },
 };
 
 const RAIN_HOUR = 0.2; // mm/h considerado "choveu"
@@ -172,15 +172,15 @@ function evaluate(siteId, idx) {
     if (order.indexOf(s) > order.indexOf(status)) status = s;
   };
 
-  if (r24 > 2) { bump('critical'); reasons.push(`${fmtMm(r24)} mm nas últimas 24 h: rocha molhada.`); }
-  else if (r24 >= 0.5) { bump('serious'); reasons.push(`Garoa nas últimas 24 h (${fmtMm(r24)} mm).`); }
-  if (next6 >= 1) { bump('critical'); reasons.push(`Previsão de ${fmtMm(next6)} mm nas 6 h seguintes.`); }
-  else if (prob6 >= 60 && idx >= state.nowIdx) { bump('warning'); reasons.push(`Chance de chuva de ${prob6}% nas 6 h seguintes.`); }
-  if (r48 > 5) { bump('serious'); reasons.push(`${fmtMm(r48)} mm entre 24 e 48 h antes: arenito pode estar úmido por dentro.`); }
-  if (total72 > 20) { bump('serious'); reasons.push(`Muita água em 72 h (${fmtMm(total72)} mm).`); }
-  else if (total72 > 5) { bump('warning'); reasons.push(`${fmtMm(total72)} mm em 72 h. Confira se a rocha secou.`); }
-  if (rh12 != null && rh12 > 90) { bump('warning'); reasons.push(`Ar muito úmido (${Math.round(rh12)}% de umidade média em 12 h): seca devagar.`); }
-  if (!reasons.length) reasons.push(last == null ? 'Nenhuma chuva no período carregado.' : `Última chuva há ${fmtAgo(last)}.`);
+  if (r24 > 2) { bump('critical'); reasons.push(`${fmtMm(r24)} mm nas últimas 24 h.`); }
+  else if (r24 >= 0.5) { bump('serious'); reasons.push('Garoou nas últimas 24 h.'); }
+  if (next6 >= 1) { bump('critical'); reasons.push('Chuva prevista nas próximas 6 h.'); }
+  else if (prob6 >= 60 && idx >= state.nowIdx) { bump('warning'); reasons.push(`${prob6}% de chance de chuva nas próximas 6 h.`); }
+  if (r48 > 5) { bump('serious'); reasons.push(`${fmtMm(r48)} mm ontem.`); }
+  if (total72 > 20) { bump('serious'); reasons.push(`${fmtMm(total72)} mm em 3 dias.`); }
+  else if (total72 > 5) { bump('warning'); reasons.push(`${fmtMm(total72)} mm em 3 dias.`); }
+  if (rh12 != null && rh12 > 90) { bump('warning'); reasons.push(`Ar úmido (${Math.round(rh12)}%).`); }
+  if (!reasons.length) reasons.push(last == null ? 'Sem chuva no período.' : `Sem chuva há ${fmtAgo(last)}.`);
 
   return { status, r24, r48, r72, total72, next6, rh12, last, reasons };
 }
@@ -242,10 +242,10 @@ function renderCards() {
       <div class="verdict">${st.head}</div>
       <ul class="reasons">${e.reasons.map((r) => `<li>${r}</li>`).join('')}</ul>
       <div class="stats">
-        <div class="stat"><div class="v">${fmtMm(e.r24)}</div><div class="k">mm 0–24 h</div></div>
-        <div class="stat"><div class="v">${fmtMm(e.r48)}</div><div class="k">mm 24–48 h</div></div>
-        <div class="stat"><div class="v">${fmtMm(e.r72)}</div><div class="k">mm 48–72 h</div></div>
-        <div class="stat"><div class="v">${fmtAgo(e.last)}</div><div class="k">desde a última chuva</div></div>
+        <div class="stat"><div class="v">${fmtMm(e.r24)}</div><div class="k">mm hoje</div></div>
+        <div class="stat"><div class="v">${fmtMm(e.r48)}</div><div class="k">mm ontem</div></div>
+        <div class="stat"><div class="v">${fmtMm(e.r72)}</div><div class="k">mm anteontem</div></div>
+        <div class="stat"><div class="v">${fmtAgo(e.last)}</div><div class="k">sem chuva</div></div>
       </div>`;
     wrap.appendChild(card);
   }
@@ -305,7 +305,7 @@ function renderMap() {
       if (!gridDots[s.id]) {
         gridDots[s.id] = L.circleMarker([g.lat, g.lon], {
           radius: 4, weight: 1, color: '#fff', fillColor: cssVar(s.color), fillOpacity: 1,
-        }).addTo(map).bindTooltip(`Célula do modelo · ${s.name}`);
+        }).addTo(map).bindTooltip(`Ponto do modelo · ${s.name}`);
       } else {
         gridDots[s.id].setLatLng([g.lat, g.lon]);
       }
@@ -603,7 +603,7 @@ function renderControls() {
 
 function renderLegend() {
   $('#legend-daily').innerHTML = SITES.map((s) => `<span><i class="swatch" style="background:var(${s.color})"></i>${s.name}</span>`).join('')
-    + '<span class="muted">claro = previsão</span>';
+    + '<span class="muted">claro: previsão</span>';
 }
 
 function setTarget(idx, light = false) {

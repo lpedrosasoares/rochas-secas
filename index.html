@@ -12,14 +12,14 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/sertao.css">
+  <link rel="stylesheet" href="css/minimal.css">
 </head>
 <body>
   <header class="hero">
     <div class="hero-text">
-      <p class="kicker">Iperó · Araçoiaba da Serra · SP</p>
       <h1>Rochas<br>Secas</h1>
-      <blockquote class="epigraph">“Fabiano esfregou as mãos satisfeito e empurrou os tições com a ponta da alpercata.”<cite>Graciliano Ramos, <i>Vidas Secas</i></cite></blockquote>
-      <p class="sub">Choveu no Iperocks e na Flona? Dá pra mandar?</p>
+      <blockquote class="epigraph">“Fabiano esfregou as mãos satisfeito e empurrou os crashes com a ponta da alpercata.”<cite><i>Vidas Secas</i></cite></blockquote>
+      <p class="sub">Choveu no Iperocks e na Flona?</p>
       <div id="hero-status" class="hero-status" aria-live="polite"></div>
       <div class="top-actions">
         <button id="refresh" class="btn" title="Atualizar dados">↻ Atualizar</button>
@@ -144,7 +144,7 @@
   <main>
     <section class="controls board" aria-label="Quando você vai escalar?">
       <div class="ctrl-group">
-        <span class="ctrl-label">Quando você vai?</span>
+        <span class="ctrl-label">Quando?</span>
         <div id="presets" class="seg" role="group"></div>
       </div>
       <div class="ctrl-group slider-group">
@@ -184,51 +184,50 @@
     <section class="grid">
       <div class="panel board map-panel">
         <div class="panel-head">
-          <h2 class="tape t-yellow">Mudança <span class="unit">mapa dos setores</span></h2>
-          <label class="chk"><input type="checkbox" id="radar-toggle"> Radar (últimas 2h)</label>
+          <h2 class="tape t-yellow">Mudança <span class="unit">mapa</span></h2>
+          <label class="chk"><input type="checkbox" id="radar-toggle"> Radar</label>
         </div>
         <div id="map"></div>
-        <p class="note">Agarras = setores, na cor do veredito. Pontos pequenos = célula da grade do modelo (~10 km). A localização da Flona é aproximada (Morro Araçoiaba).</p>
+        <p class="note">Cor = veredito. Local da Flona aproximado.</p>
       </div>
 
       <div class="panel board">
         <div class="panel-head">
-          <h2 class="tape t-teal">Inverno <span class="unit">chuva por dia · mm</span></h2>
+          <h2 class="tape t-teal">Inverno <span class="unit">chuva por dia</span></h2>
           <div class="legend" id="legend-daily"></div>
         </div>
         <div id="daily-chart" class="chart" role="img" aria-label="Gráfico de chuva diária"></div>
-        <p class="hint">Clique num dia para avaliar ir nele às 8h.</p>
+        <p class="hint">Clique num dia para ver o veredito.</p>
       </div>
 
       <div class="panel board wide">
         <div class="panel-head">
-          <h2 class="tape t-pink">Inverno miúdo <span class="unit">hora a hora · mm/h</span></h2>
-          <span class="note">Faixa sombreada = 72 h antes do momento avaliado</span>
+          <h2 class="tape t-pink">Inverno miúdo <span class="unit">por hora</span></h2>
+          <span class="note">Sombra: 72 h avaliadas</span>
         </div>
         <div id="hourly-chart" class="chart" role="img" aria-label="Gráfico de chuva horária"></div>
-        <p class="hint">Clique ou arraste no gráfico para escolher o momento avaliado.</p>
+        <p class="hint">Clique ou arraste para mudar o horário.</p>
       </div>
 
       <div class="panel board wide">
         <details>
-          <summary><span class="tape t-violet">Livro de contas <span class="unit">tabela diária</span></span></summary>
+          <summary><span class="tape t-violet">Livro de contas <span class="unit">tabela</span></span></summary>
           <div id="table-wrap" class="table-wrap"></div>
         </details>
       </div>
     </section>
 
     <section class="panel board about">
-      <h2 class="tape t-yellow">Contas <span class="unit">como o veredito é calculado</span></h2>
-      <p>A partir do momento escolhido, o app soma a chuva das <b>24 h</b>, das <b>24–48 h</b> e das <b>48–72 h</b> anteriores, e olha a previsão das 6 h seguintes.
-        Iperocks é <b>arenito</b>: molhado, perde resistência e as agarras quebram. Espere 24 a 48 h sem chuva, e mais se choveu muito ou o ar está úmido.</p>
+      <h2 class="tape t-yellow">Contas <span class="unit">como funciona</span></h2>
+      <p>Soma a chuva dos últimos 3 dias e olha a previsão das próximas 6 h. Arenito molhado quebra: espere 1 a 2 dias sem chuva.</p>
       <ul class="rules">
-        <li><span class="pill s-critical">Não dá</span> mais de 2 mm em 24 h, ou chuva prevista durante a sessão.</li>
-        <li><span class="pill s-serious">Melhor não</span> choveu em 24 h, ou mais de 5 mm entre 24–48 h, ou mais de 20 mm em 72 h.</li>
-        <li><span class="pill s-warning">Talvez</span> mais de 5 mm em 72 h, ou umidade média acima de 90% em 12 h.</li>
-        <li><span class="pill s-good">Bora</span> seco o bastante.</li>
+        <li><span class="pill s-critical">Não dá</span> choveu mais de 2 mm hoje ou vai chover.</li>
+        <li><span class="pill s-serious">Melhor não</span> garoou hoje ou choveu muito nos últimos dias.</li>
+        <li><span class="pill s-warning">Talvez</span> choveu um pouco nos últimos dias ou o ar está úmido.</li>
+        <li><span class="pill s-good">Bora</span> seco.</li>
       </ul>
       <p class="callout">Lembre-se de verificar se a rocha não está com risco de quebrar. Os arenitos da região são sensíveis à umidade.</p>
-      <p class="note">Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (modelo, não pluviômetro) · radar <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> · mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Chuva de verão é localizada, isto é uma estimativa.</p>
+      <p class="note">Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. É uma estimativa.</p>
     </section>
   </main>
 

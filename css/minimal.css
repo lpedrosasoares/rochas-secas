@@ -1,0 +1,93 @@
+/* Rochas Secas: camada minimalista (preto e branco, sem texturas nem caixas).
+   Vem por último; para voltar ao visual anterior basta remover este arquivo do index.html. */
+:root {
+  --page-bg: #f6f6f4;
+  --surface: #f6f6f4;
+  --ink: #111;
+  --ink-2: #444;
+  --muted: #8a8a86;
+  --grid: #e4e4e0;
+  --axis: #bdbdb8;
+  --hair: rgba(0, 0, 0, 0.12);
+  --hatch: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page-bg: #111;
+    --surface: #111;
+    --ink: #eee;
+    --ink-2: #bbb;
+    --muted: #7d7d79;
+    --grid: #262626;
+    --axis: #444;
+    --hair: rgba(255, 255, 255, 0.12);
+  }
+}
+:root[data-theme="dark"] {
+  --page-bg: #111;
+  --surface: #111;
+  --ink: #eee;
+  --ink-2: #bbb;
+  --muted: #7d7d79;
+  --grid: #262626;
+  --axis: #444;
+  --hair: rgba(255, 255, 255, 0.12);
+}
+
+body { background: var(--page-bg); background-image: none; }
+
+/* enfeites fora */
+.vine, .pano { display: none; }
+.rope { display: none; }
+
+/* topo */
+h1 { font-size: clamp(64px, 8vw, 112px); }
+.epigraph { border-left-width: 1px; font-size: 15px; font-weight: 400; color: var(--ink-2); }
+.epigraph cite { font: 400 11px var(--font); letter-spacing: 0.08em; color: var(--muted); }
+.sub { font-weight: 400; color: var(--ink-2); }
+.hero-chip { border-width: 1px; background: transparent; }
+.hero-scene { border-width: 1px; }
+
+/* sem caixas: só um filete em cima de cada seção */
+.board, .card, .controls {
+  background: transparent; background-image: none;
+  border: 0; border-top: 1px solid var(--ink);
+  box-shadow: none; border-radius: 0;
+}
+.panel, .controls { padding: 16px 0; }
+.card { padding: 16px 0 8px; gap: 10px; }
+.card::before { display: none; }
+main { gap: 40px; }
+.grid, .cards { gap: 40px; }
+
+/* botões finos */
+.btn, .seg button { border-width: 1px; background: transparent; font: 500 12px var(--font); letter-spacing: 0.04em; }
+.btn:hover, .seg button:hover { background: var(--ink); color: var(--page-bg); }
+.seg button.on { background: var(--ink); color: var(--page-bg); }
+.ctrl-label, .target-label { font: 500 13px var(--font); letter-spacing: 0.04em; text-transform: none; color: var(--ink-2); }
+.scrub-track { border-width: 1px; }
+
+/* títulos */
+.tape { font-size: 26px; gap: 8px; }
+.tape::before { display: none; }
+.tape .unit { font-size: 12px; color: var(--muted); }
+.panel-head { border-bottom: 0; padding-bottom: 0; margin-bottom: 14px; }
+
+/* cartões */
+.card h3 { font-size: 30px; }
+.verdict { font: 600 24px/1.2 var(--font); letter-spacing: -0.01em; }
+.reasons { color: var(--ink-2); font-size: 14px; }
+.stats { gap: 0; border-top: 1px solid var(--hair); padding-top: 10px; }
+.stat { border: 0; padding: 0; background: transparent; }
+.stat .v { font-size: 26px; }
+.pill { font: 600 12px var(--font); letter-spacing: 0.06em; }
+.pill::before { border-width: 1px; width: 10px; height: 10px; }
+.card-head .pill::before, .hero-chip .pill::before { width: 12px; height: 12px; }
+.reasons li::before { border: 0; width: 6px; height: 6px; }
+
+/* mapa, gráficos, tabela */
+#map { border-width: 1px; }
+.tooltip { border-width: 1px; }
+th { border-bottom-width: 1px; }
+.callout { border: 0; padding: 0; font-size: 22px; }
+.hint::before { content: ""; }
