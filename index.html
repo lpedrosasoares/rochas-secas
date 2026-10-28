@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=League+Gothic&family=Archivo+Black&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="css/style.css?v=202610281624">
-  <link rel="stylesheet" href="css/sertao.css?v=202610281624">
+  <link rel="stylesheet" href="css/style.css?v=202610281729">
+  <link rel="stylesheet" href="css/sertao.css?v=202610281729">
 </head>
 <body>
   <header class="hero">
@@ -168,31 +168,19 @@
         </div>
         <span id="target-label" class="target-label"></span>
       </div>
-      <div class="ctrl-group">
-        <span class="ctrl-label">Histórico</span>
-        <div id="range" class="seg" role="group">
-          <button data-days="7">7 dias</button>
-          <button data-days="14" class="on">14 dias</button>
-          <button data-days="30">30 dias</button>
-        </div>
-      </div>
     </section>
 
     <section id="cards" class="cards" aria-live="polite"></section>
 
     <section class="grid">
-      <div class="panel board map-panel">
+      <div class="panel board wide">
         <div class="panel-head">
-          <h2 class="tape t-yellow">Mudança <span class="unit">mapa</span></h2>
-          <label class="chk"><input type="checkbox" id="radar-toggle"> Radar</label>
-        </div>
-        <div id="map"></div>
-        <p class="note">Cor = veredito. Local da Flona aproximado.</p>
-      </div>
-
-      <div class="panel board">
-        <div class="panel-head">
-          <h2 class="tape t-teal">Inverno <span class="unit">chuva por dia</span></h2>
+          <h2 class="tape t-teal">Chuva por dia</h2>
+          <div id="range" class="seg" role="group" aria-label="Histórico">
+            <button data-days="7">7 dias</button>
+            <button data-days="14" class="on">14 dias</button>
+            <button data-days="30">30 dias</button>
+          </div>
           <div class="legend" id="legend-daily"></div>
         </div>
         <div id="daily-chart" class="chart" role="img" aria-label="Gráfico de chuva diária"></div>
@@ -211,14 +199,23 @@
       <div class="panel board wide">
         <div class="panel-head">
           <h2 class="tape t-pink">Acumulada <span class="unit" id="cum-unit">chuva somada no período</span></h2>
-          <div id="cum-mode" class="seg" role="group" aria-label="Acumulado por">
-            <button data-mode="dias" class="on">Dias</button>
-            <button data-mode="mes">Mês</button>
-          </div>
-          <div class="legend" id="legend-cum"></div>
         </div>
+        <div class="legend cum-legend" id="legend-cum"></div>
         <div id="cum-chart" class="chart" role="img" aria-label="Gráfico de chuva acumulada"></div>
         <p class="hint">Clique ou arraste para mudar o horário.</p>
+      </div>
+
+      <div class="panel board wide">
+        <div class="panel-head">
+          <h2 class="tape t-teal">Pluviômetros <span class="unit">chuva medida pelo CEMADEN</span></h2>
+          <div class="legend" id="legend-gauge"></div>
+        </div>
+        <div id="gauge-chart" class="chart" role="img" aria-label="Chuva por dia medida no pluviômetro e estimada pelo modelo"></div>
+        <div class="gauge-grid">
+          <div id="gauge-table" class="table-wrap"></div>
+          <div id="gauge-map" aria-label="Mapa das estações"></div>
+        </div>
+        <p class="hint">Clique numa estação (na tabela ou no mapa) para ver onde ela fica e o gráfico dela.</p>
       </div>
 
       <div class="panel board wide">
@@ -240,19 +237,19 @@
 
     <section class="panel board about">
       <h2 class="tape t-yellow">Contas <span class="unit">como funciona</span></h2>
-      <p>Soma a chuva dos últimos 3 dias e olha a previsão das próximas 6 h. Arenito molhado quebra: espere 1 a 2 dias sem chuva.</p>
+      <p>Soma a chuva dos últimos 3 dias e olha a previsão das próximas 6 h, uma vez com o pluviômetro e outra com o modelo. Só dá <b>Bora</b> quando os dois concordam; se só um disser Bora, fica <b>Talvez</b>. Arenito molhado quebra: espere 1 a 2 dias sem chuva.</p>
       <ul class="rules">
         <li><span class="pill s-critical">Não dá</span> choveu mais de 2 mm hoje ou vai chover.</li>
         <li><span class="pill s-serious">Melhor não</span> garoou hoje ou choveu muito nos últimos dias.</li>
         <li><span class="pill s-warning">Talvez</span> choveu um pouco nos últimos dias ou o ar está úmido.</li>
         <li><span class="pill s-good">Bora</span> seco.</li>
       </ul>
-      <p class="note">Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. É uma estimativa.</p>
+      <p class="note">Dados: pluviômetros do <a href="https://mapainterativo.cemaden.gov.br/" target="_blank" rel="noopener">CEMADEN</a>, <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> e <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. É uma estimativa.</p>
     </section>
   </main>
 
   <footer class="pano" aria-hidden="false">
-    <svg viewBox="0 0 1200 170" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <svg viewBox="0 -15 1200 185" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <path class="pano-ground" d="M0 150 C 200 138, 400 146, 600 142 C 800 138, 1000 146, 1200 140 V170 H0 Z"/>
       <g class="pano-ink">
         <path d="M60 150 V60 M60 110 H40 V78 M60 92 H82 V52" stroke-width="12"/>
@@ -296,7 +293,7 @@
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="js/scene.js?v=202610281624"></script>
-  <script src="js/app.js?v=202610281624"></script>
+  <script src="js/scene.js?v=202610281729"></script>
+  <script src="js/app.js?v=202610281729"></script>
 </body>
 </html>

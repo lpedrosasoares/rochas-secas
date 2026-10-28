@@ -76,6 +76,9 @@ function fmtMm(v) {
   if (v === 0) return '0';
   return v < 10 ? v.toFixed(1).replace('.', ',') : Math.round(v).toString();
 }
+function titleCase(t) {
+  return t.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()).replace(/ (Da|De|Do|Das|Dos|E) /g, (w) => w.toLowerCase());
+}
 function fmtAgo(h) {
   if (h == null) return '–';
   if (h < 1) return 'agora';
@@ -147,17 +150,110 @@ async function loadData() {
 }
 
 // ---------------------------------------------------------------------------
+// Pluviômetros do CEMADEN: chuva medida hora a hora (o serviço libera CORS)
+// ---------------------------------------------------------------------------
+const CEMADEN = 'https://mapservices.cemaden.gov.br/MapaInterativoWS/resources/horario';
+// estações da região (Iperó, Capela do Alto, Boituva, Araçoiaba, Sorocaba, Votorantim)
+const STATION_IDS = [8140, 8128, 8124, 8122, 7085, 7086, 4407, 3017];
+const GAUGE_MAX_KM = 15;   // mais longe que isso não representa o setor
+const GAUGE_FRESH_H = 6;   // estação sem dado há mais tempo é considerada parada
+state.stations = [];
+state.gauge = {};
+
+function distKm(a, b) {
+  const R = 6371;
+  const r = (x) => (x * Math.PI) / 180;
+  const dLat = r(b.lat - a.lat);
+  const dLon = r(b.lon - a.lon);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+// horários do CEMADEN vêm em UTC; o Brasil está em UTC-3 (sem horário de verão)
+function cemadenKey(date, hourLabel) {
+  const [d, m, y] = date.split('/').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d, parseInt(hourLabel, 10)) - 3 * 3600e3);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${t.getUTCFullYear()}-${p(t.getUTCMonth() + 1)}-${p(t.getUTCDate())}T${p(t.getUTCHours())}:00`;
+}
+
+async function loadGauges() {
+  const hours = Math.min(720, state.nowIdx + 2);
+  const results = await Promise.allSettled(STATION_IDS.map(async (id) => {
+    const r = await fetch(`${CEMADEN}/${id}/${hours}`);
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    const byKey = {};
+    (j.datas || []).forEach((date, i) => {
+      (j.acumulados[i] || []).forEach((v, k) => { if (v != null) byKey[cemadenKey(date, j.horarios[k])] = v; });
+    });
+    const keys = Object.keys(byKey).sort();
+    const e = j.estacao;
+    return {
+      id, name: e.nome, city: e.idMunicipio.cidade, lat: e.latitude, lon: e.longitude,
+      enabled: e.status === 'ENABLED', last: keys[keys.length - 1] || null, byKey,
+    };
+  }));
+  state.stations = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+}
+
+// Estação "travada": mede quase nada enquanto o modelo estima muita chuva no mesmo período
+function gaugeSuspect(st, model) {
+  let meas = 0;
+  let mod = 0;
+  let n = 0;
+  for (let i = 0; i <= state.nowIdx; i++) {
+    const v = st.byKey[state.times[i]];
+    if (v == null) continue;
+    meas += v; mod += model[i] || 0; n++;
+  }
+  st.suspect = n < state.nowIdx * 0.5 || (mod > 20 && meas < mod * 0.1);
+  return st.suspect;
+}
+
+// Usa a chuva medida no passado (estação ativa mais próxima) e o modelo no futuro
+function mergeGauges() {
+  const now = state.times[state.nowIdx];
+  const hoursSince = (k) => (Date.parse(now + ':00Z') - Date.parse(k + ':00Z')) / 3600e3;
+  for (const s of SITES) {
+    const h = state.hourly[s.id];
+    h.model = h.model || h.precip.slice();
+    h.precip = h.model.slice();
+    const near = state.stations
+      .filter((st) => st.enabled && st.last && hoursSince(st.last) <= GAUGE_FRESH_H && !gaugeSuspect(st, h.model))
+      .map((st) => ({ st, km: distKm(s, st) }))
+      .filter((x) => x.km <= GAUGE_MAX_KM)
+      .sort((a, b) => a.km - b.km)[0];
+    state.gauge[s.id] = near || null;
+    if (!near) continue;
+    const measured = state.times.map((t, i) => (i <= state.nowIdx ? near.st.byKey[t] ?? null : null));
+    h.measured = measured;
+    measured.forEach((v, i) => { if (v != null) h.precip[i] = v; });
+    // refaz os totais diários com a série combinada
+    const d = state.daily[s.id];
+    state.days.forEach((day, k) => {
+      let sum = 0;
+      let n = 0;
+      state.times.forEach((t, i) => { if (t.startsWith(day)) { sum += h.precip[i] || 0; if ((h.precip[i] || 0) >= 0.1) n++; } });
+      d.sum[k] = Math.round(sum * 10) / 10;
+      d.hours[k] = n;
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Veredito
 // ---------------------------------------------------------------------------
-function evaluate(siteId, idx) {
+// opts.precip: série de chuva alternativa; opts.noForecast: ignora a previsão (só o medido)
+function evaluate(siteId, idx, opts = {}) {
   const h = state.hourly[siteId];
-  const p = h.precip;
+  const p = opts.precip || h.precip;
   const r24 = sumRange(p, idx - 23, idx);
   const r48 = sumRange(p, idx - 47, idx - 24);
   const r72 = sumRange(p, idx - 71, idx - 48);
   const total72 = r24 + r48 + r72;
-  const next6 = sumRange(p, idx + 1, idx + 6);
-  const prob6 = Math.max(0, ...(h.prob || []).slice(idx + 1, idx + 7).filter((v) => v != null));
+  const next6 = opts.noForecast ? 0 : sumRange(p, idx + 1, idx + 6);
+  const prob6 = opts.noForecast ? 0 : Math.max(0, ...(h.prob || []).slice(idx + 1, idx + 7).filter((v) => v != null));
   const rhs = h.rh.slice(Math.max(0, idx - 11), idx + 1).filter((v) => v != null);
   const rh12 = rhs.length ? rhs.reduce((a, b) => a + b, 0) / rhs.length : null;
 
@@ -212,7 +308,7 @@ function renderHero() {
   const order = ['good', 'warning', 'serious', 'critical'];
   let worst = 'good';
   $('#hero-status').innerHTML = SITES.map((s) => {
-    const e = evaluate(s.id, state.target);
+    const e = readings(s);
     if (order.indexOf(e.status) > order.indexOf(worst)) worst = e.status;
     const st = STATUS[e.status];
     return `<span class="hero-chip"><span class="pill ${st.cls}">${st.label}</span>${s.name}</span>`;
@@ -220,13 +316,53 @@ function renderHero() {
   if (typeof Scene !== 'undefined') Scene.setWeather(worst);
 }
 
+// Leituras separadas e veredito final combinado:
+// os dois "Bora" → Bora; só um "Bora" → Talvez; nenhum → o mais brando dos dois.
+const ORDER = ['good', 'warning', 'serious', 'critical'];
+function readings(s, idx = state.target) {
+  const h = state.hourly[s.id];
+  const g = state.gauge[s.id];
+  const base = evaluate(s.id, idx); // série combinada: números e motivos do cartão
+  const model = evaluate(s.id, idx, { precip: h.model || h.precip });
+  const gauge = g ? evaluate(s.id, Math.min(idx, state.nowIdx), { precip: h.measured.map((v) => v || 0), noForecast: true }) : null;
+  let status;
+  let disagree = false;
+  if (!gauge) status = model.status;
+  else if (gauge.status === 'good' && model.status === 'good') status = 'good';
+  else if (gauge.status === 'good' || model.status === 'good') { status = 'warning'; disagree = true; }
+  else status = ORDER[Math.min(ORDER.indexOf(gauge.status), ORDER.indexOf(model.status))];
+  const reasons = disagree ? ['Pluviômetro e modelo discordam.', ...base.reasons] : base.reasons;
+  return { status, base, model, gauge, reasons };
+}
+
+function viewsHtml(s, R) {
+  const g = state.gauge[s.id];
+  const idx = state.target;
+  const view = (label, e, detail) => {
+    const st = STATUS[e.status];
+    return `<div class="view"><span class="vlabel">${label}</span><span class="pill ${st.cls}">${st.label}</span><span class="vdetail">${detail}</span></div>`;
+  };
+  let gaugeView;
+  if (!g) {
+    gaugeView = '<div class="view off"><span class="vlabel">Pluviômetro</span><span class="vdetail">sem estação ativa perto</span></div>';
+  } else {
+    // horário no futuro: o pluviômetro só conhece até agora
+    const until = idx > state.nowIdx ? ' até agora' : '';
+    gaugeView = view('Pluviômetro', R.gauge, `${fmtMm(R.gauge.total72)} mm em 72 h${until} · ${titleCase(g.st.city)} (${Math.round(g.km)} km)`);
+  }
+  const em = R.model;
+  const modelView = view('Modelo', em, `${fmtMm(em.total72)} mm em 72 h${em.next6 >= 1 ? ' · chuva prevista' : ''}`);
+  return `<div class="views">${gaugeView}${modelView}</div>`;
+}
+
 function renderCards() {
   renderHero();
   const wrap = $('#cards');
   wrap.innerHTML = '';
   for (const s of SITES) {
-    const e = evaluate(s.id, state.target);
-    const st = STATUS[e.status];
+    const R = readings(s);
+    const e = R.base;
+    const st = STATUS[R.status];
     const card = document.createElement('article');
     card.className = 'card';
     card.style.setProperty('--status', `var(${st.color})`);
@@ -234,12 +370,14 @@ function renderCards() {
       <div class="card-head">
         <div>
           <div class="card-title"><i class="swatch" style="background:var(${s.color})"></i><h3>${s.name}</h3></div>
-          <div class="rock">${s.rock}${s.link ? ` · <a href="${s.link}" target="_blank" rel="noopener">info</a>` : ''}</div>
+          <div class="rock">${s.rock}</div>
         </div>
         <span class="pill ${st.cls}">${st.label}</span>
       </div>
       <div class="verdict">${st.head}</div>
-      <ul class="reasons">${e.reasons.map((r) => `<li>${r}</li>`).join('')}</ul>
+      <p class="source">${state.gauge[s.id] ? 'Final: Bora só quando pluviômetro e modelo concordam' : 'Final: só o modelo (sem pluviômetro ativo perto)'}</p>
+      ${viewsHtml(s, R)}
+      <ul class="reasons">${R.reasons.map((r) => `<li>${r}</li>`).join('')}</ul>
       <div class="stats">
         <div class="stat"><div class="v">${fmtMm(e.r24)}</div><div class="k">mm hoje</div></div>
         <div class="stat"><div class="v">${fmtMm(e.r48)}</div><div class="k">mm ontem</div></div>
@@ -264,6 +402,7 @@ function holdIcon(color) {
   });
 }
 function initMap() {
+  if (!document.getElementById('map')) return;
   map = L.map('map', { scrollWheelZoom: false }).setView([-23.435, -47.64], 12);
   const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18, attribution: '© OpenStreetMap',
@@ -289,6 +428,8 @@ function initMap() {
 }
 
 function renderMap() {
+  if (!map) return;
+  renderGaugesOnMap();
   for (const s of SITES) {
     const e = evaluate(s.id, state.target);
     const st = STATUS[e.status];
@@ -310,6 +451,26 @@ function renderMap() {
       }
     }
   }
+}
+
+let gaugeMarkers = [];
+function renderGaugesOnMap() {
+  gaugeMarkers.forEach((m) => map.removeLayer(m));
+  gaugeMarkers = [];
+  const now = state.times[state.nowIdx];
+  state.stations.forEach((st) => {
+    const sum = (h) => { let t = 0; for (let i = Math.max(0, state.nowIdx - h + 1); i <= state.nowIdx; i++) t += st.byKey[state.times[i]] || 0; return t; };
+    const fresh = st.enabled && st.last && !st.suspect && (Date.parse(now + ':00Z') - Date.parse(st.last + ':00Z')) / 3600e3 <= GAUGE_FRESH_H;
+    const used = SITES.some((s) => state.gauge[s.id] && state.gauge[s.id].st.id === st.id);
+    const mk = L.circleMarker([st.lat, st.lon], {
+      radius: used ? 6 : 4.5, weight: used ? 2.5 : 1.5, color: '#1a0d08', fillColor: fresh ? '#ffffff' : '#9a9a9a', fillOpacity: 1,
+    }).addTo(map);
+    mk.bindTooltip(`Pluviômetro · ${titleCase(st.city)}`);
+    mk.bindPopup(`<b>Pluviômetro CEMADEN</b><br>${titleCase(st.city)} · ${st.name}<br>`
+      + (fresh ? `24 h: <b>${fmtMm(sum(24))} mm</b> · 72 h: <b>${fmtMm(sum(72))} mm</b><br>último dado: ${fmtTime(st.last)}`
+        : `<span class="muted">${st.suspect && st.last ? 'dados suspeitos (quase sempre zero), não usado' : `sem dados recentes${st.last ? ` (último: ${fmtTime(st.last)})` : ''}`}</span>`));
+    gaugeMarkers.push(mk);
+  });
 }
 
 async function toggleRadar(ev) {
@@ -591,7 +752,7 @@ function cumulativeData() {
       nowIdx: Math.max(0, days.indexOf(today)),
       targetIdx: days.indexOf(targetDay),
       window: null,
-      unit: `mm em ${MESES[Number(key.slice(5, 7)) - 1]}`,
+      unit: `mm em ${MESES[Number(key.slice(5, 7)) - 1]} · modelo`,
       ticks: days.map((d, i) => ({ i, top: String(Number(d.slice(8, 10))), bottom: WD[weekday(d)] })),
       tipTitle: (i) => fmtDay(days[i]) + (days[i] > today ? ' <span class="muted">(previsão)</span>' : ''),
       toTarget: (i) => {
@@ -603,12 +764,18 @@ function cumulativeData() {
   }
   const T = state.times;
   const cum = {};
-  SITES.forEach((x) => { let acc = 0; cum[x.id] = state.hourly[x.id].precip.map((v) => (acc += v || 0)); });
+  const model = {};
+  SITES.forEach((x) => {
+    let acc = 0;
+    cum[x.id] = state.hourly[x.id].precip.map((v) => (acc += v || 0));
+    if (state.gauge[x.id]) { let a2 = 0; model[x.id] = state.hourly[x.id].model.map((v) => (a2 += v || 0)); }
+  });
   const ticks = [];
   T.forEach((t, i) => { if (t.endsWith('T00:00')) ticks.push({ i: i + 12, top: WD[weekday(t.slice(0, 10))], bottom: fmtDay(t.slice(0, 10), false) }); });
   return {
     n: T.length,
     cum,
+    model,
     nowIdx: state.nowIdx,
     targetIdx: state.target,
     window: [Math.max(0, state.target - 71), state.target],
@@ -669,6 +836,11 @@ function renderCumulative() {
   // curvas: sólida no passado, tracejada na previsão; rótulo direto no fim
   const linePath = (arr, a, b) => arr.slice(a, b + 1).map((v, k) => `${k ? 'L' : 'M'}${xOf(a + k).toFixed(1)},${y(v).toFixed(1)}`).join('');
   const ends = [];
+  // modelo (linha fina) para comparar com o medido
+  SITES.forEach((x) => {
+    const mc = D.model && D.model[x.id];
+    if (mc) svgEl('path', { d: linePath(mc, 0, n - 1), fill: 'none', stroke: `var(${x.color})`, 'stroke-width': 1, opacity: 0.45 }, svg);
+  });
   SITES.forEach((x) => {
     const c = D.cum[x.id];
     svgEl('path', { d: linePath(c, 0, D.nowIdx), fill: 'none', stroke: `var(${x.color})`, 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
@@ -713,8 +885,192 @@ function renderCumulative() {
   });
 
   box.appendChild(svg);
-  $('#legend-cum').innerHTML = SITES.map((x) => `<span><i class="swatch" style="background:var(${x.color})"></i>${x.name}</span>`).join('')
-    + '<span class="muted">tracejado: previsão</span>';
+  // legenda: cor = local; estilo da linha = de onde vem a chuva
+  const sample = (style) => `<svg class="lsample" width="28" height="10" aria-hidden="true"><line x1="1" y1="5" x2="27" y2="5" stroke="currentColor" ${style}/></svg>`;
+  const hasModel = D.model && Object.keys(D.model).length > 0;
+  const ids = SITES.map((x) => state.gauge[x.id] && state.gauge[x.id].st.id);
+  const sameGauge = state.cumMode === 'dias' && ids[0] && ids.every((v) => v === ids[0]);
+  $('#legend-cum').innerHTML = `
+    <span class="lg-group">${SITES.map((x) => `<span style="color:var(${x.color})">${sample('stroke-width="3"')}<b style="color:var(--ink)">${x.name}</b></span>`).join('')}</span>
+    <span class="lg-group">
+      ${hasModel ? `<span>${sample('stroke-width="2.5"')}medido (pluviômetro)</span>` : `<span>${sample('stroke-width="2.5"')}modelo</span>`}
+      <span>${sample('stroke-width="2.5" stroke-dasharray="4 3"')}previsão</span>
+      ${hasModel ? `<span class="faint">${sample('stroke-width="1.2" opacity="0.5"')}só modelo</span>` : ''}
+    </span>
+    ${sameGauge ? '<span class="lg-note">Os dois setores usam o mesmo pluviômetro: as linhas medidas se sobrepõem.</span>' : ''}`;
+}
+
+// ---------------------------------------------------------------------------
+// Pluviômetros: tabela das estações + medido x modelo por dia
+// ---------------------------------------------------------------------------
+state.gaugeSel = null;
+
+function gaugeStatus(st) {
+  const now = state.times[state.nowIdx];
+  if (!st.last) return { key: 'off', label: 'parado' };
+  const h = (Date.parse(now + ':00Z') - Date.parse(st.last + ':00Z')) / 3600e3;
+  if (!st.enabled || h > GAUGE_FRESH_H) return { key: 'off', label: 'parado' };
+  if (st.suspect) return { key: 'bad', label: 'com defeito' };
+  return { key: 'ok', label: 'ativo' };
+}
+function gaugeSum(st, hours) {
+  let t = 0;
+  let n = 0;
+  for (let i = Math.max(0, state.nowIdx - hours + 1); i <= state.nowIdx; i++) {
+    const v = st.byKey[state.times[i]];
+    if (v != null) { t += v; n++; }
+  }
+  return n ? t : null;
+}
+
+// Mapa das estações (ao lado da tabela)
+let gaugeMap = null;
+let gaugeLayer = null;
+const gaugeMk = {};
+function selectGauge(id, fly) {
+  state.gaugeSel = id;
+  renderGauges();
+  const st = state.stations.find((x) => x.id === id);
+  if (fly && st && gaugeMap) {
+    gaugeMap.flyTo([st.lat, st.lon], Math.max(gaugeMap.getZoom(), 12), { duration: 0.8 });
+    setTimeout(() => gaugeMk[id] && gaugeMk[id].openPopup(), 850);
+  }
+}
+function renderGaugeMap(byDist) {
+  const el = $('#gauge-map');
+  if (!el || typeof L === 'undefined') return;
+  if (!gaugeMap) {
+    gaugeMap = L.map(el, { scrollWheelZoom: false, attributionControl: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(gaugeMap);
+    L.control.scale({ imperial: false }).addTo(gaugeMap);
+    gaugeLayer = L.layerGroup().addTo(gaugeMap);
+    const pts = state.stations.map((st) => [st.lat, st.lon]).concat(SITES.map((x) => [x.lat, x.lon]));
+    gaugeMap.fitBounds(pts, { padding: [24, 24] });
+  }
+  gaugeLayer.clearLayers();
+  // setores
+  SITES.forEach((x) => {
+    L.marker([x.lat, x.lon], { icon: holdIcon(cssVar(x.color)), keyboard: false }).addTo(gaugeLayer)
+      .bindTooltip(x.name, { permanent: true, direction: 'right', offset: [14, 0], className: 'site-label' });
+  });
+  // linha até o setor mais próximo da estação selecionada
+  const sel = state.stations.find((x) => x.id === state.gaugeSel);
+  if (sel) {
+    const near = SITES.slice().sort((a, b) => distKm(a, sel) - distKm(b, sel))[0];
+    L.polyline([[sel.lat, sel.lon], [near.lat, near.lon]], { color: '#1a0d08', weight: 1.5, dashArray: '4 4' }).addTo(gaugeLayer)
+      .bindTooltip(`${Math.round(distKm(near, sel))} km até ${near.name}`, { permanent: true, direction: 'center', className: 'dist-label' });
+  }
+  // estações
+  byDist.forEach(({ st, km }) => {
+    const stt = gaugeStatus(st);
+    const isSel = st.id === state.gaugeSel;
+    const mk = L.circleMarker([st.lat, st.lon], {
+      radius: isSel ? 8 : 5.5, weight: isSel ? 3 : 1.5, color: '#1a0d08',
+      fillColor: stt.key === 'ok' ? '#ffffff' : stt.key === 'bad' ? cssVar('--critical') : '#9a9a9a', fillOpacity: 1,
+    }).addTo(gaugeLayer);
+    const v = (h) => { const x = gaugeSum(st, h); return x == null ? '–' : `${fmtMm(x)} mm`; };
+    mk.bindPopup(`<b>${titleCase(st.city)} · ${st.name}</b><br><span class="gstat g-${stt.key}">${stt.label}</span><br>`
+      + (stt.key === 'ok' ? `24 h: <b>${v(24)}</b> · 72 h: <b>${v(72)}</b> · 7 dias: <b>${v(168)}</b><br>` : '')
+      + `${SITES.map((x, i) => `${Math.round(km[i])} km até ${x.name}`).join('<br>')}<br>`
+      + `<span class="muted">${st.lat.toFixed(4)}, ${st.lon.toFixed(4)}</span>`);
+    mk.bindTooltip(`${titleCase(st.city)} · ${st.name}`);
+    mk.on('click', () => { if (state.gaugeSel !== st.id) selectGauge(st.id, false); setTimeout(() => gaugeMk[st.id] && gaugeMk[st.id].openPopup(), 0); });
+    if (isSel) mk.bringToFront();
+    gaugeMk[st.id] = mk;
+  });
+}
+
+function renderGauges() {
+  const tableBox = $('#gauge-table');
+  const chartBox = $('#gauge-chart');
+  if (!state.stations.length) {
+    chartBox.innerHTML = '';
+    tableBox.innerHTML = '<p class="note">Não consegui carregar os pluviômetros do CEMADEN agora.</p>';
+    return;
+  }
+  // estação padrão: a usada pelo Iperocks (ou a mais próxima)
+  const byDist = state.stations.map((st) => ({ st, km: SITES.map((x) => distKm(x, st)) })).sort((a, b) => a.km[0] - b.km[0]);
+  if (!state.gaugeSel || !state.stations.some((x) => x.id === state.gaugeSel)) {
+    state.gaugeSel = (state.gauge[SITES[0].id] && state.gauge[SITES[0].id].st.id) || byDist[0].st.id;
+  }
+  const sel = state.stations.find((x) => x.id === state.gaugeSel);
+
+  // tabela
+  const used = new Set(SITES.map((x) => state.gauge[x.id] && state.gauge[x.id].st.id).filter(Boolean));
+  const mm = (v) => (v == null ? '–' : fmtMm(v));
+  tableBox.innerHTML = `<table class="gauges">
+    <thead><tr><th>Estação</th>${SITES.map((x) => `<th>${x.name.split(' ')[0]}</th>`).join('')}<th>Leitura</th><th>24 h</th><th>72 h</th><th>7 dias</th><th>Situação</th></tr></thead>
+    <tbody>${byDist.map(({ st, km }) => {
+      const stt = gaugeStatus(st);
+      const ok = stt.key === 'ok';
+      return `<tr data-id="${st.id}" class="${st.id === state.gaugeSel ? 'sel' : ''} ${ok ? '' : 'off'}">
+        <td>${titleCase(st.city)} · ${st.name}${used.has(st.id) ? ' <span class="used">em uso</span>' : ''}</td>
+        ${km.map((k) => `<td>${Math.round(k)} km</td>`).join('')}
+        <td>${st.last ? `${fmtDay(st.last.slice(0, 10), false)} ${st.last.slice(11, 13)}h` : '–'}</td>
+        <td>${ok ? mm(gaugeSum(st, 24)) : '–'}</td>
+        <td>${ok ? mm(gaugeSum(st, 72)) : '–'}</td><td>${ok ? mm(gaugeSum(st, 168)) : '–'}</td>
+        <td><span class="gstat g-${stt.key}">${stt.label}</span></td></tr>`;
+    }).join('')}</tbody></table>`;
+  tableBox.querySelectorAll('tr[data-id]').forEach((tr) => tr.addEventListener('click', () => selectGauge(Number(tr.dataset.id), true)));
+  renderGaugeMap(byDist);
+
+  // gráfico: chuva por dia, medido (estação) x modelo (setor mais próximo da estação)
+  chartBox.innerHTML = '';
+  const site = SITES.slice().sort((a, b) => distKm(a, sel) - distKm(b, sel))[0];
+  const today = state.times[state.nowIdx].slice(0, 10);
+  const days = state.days.filter((d) => d <= today);
+  const sumDay = (get, day) => {
+    let t = 0;
+    let n = 0;
+    state.times.forEach((tm, i) => { if (tm.startsWith(day) && i <= state.nowIdx) { const v = get(i, tm); if (v != null) { t += v; n++; } } });
+    return n ? t : null;
+  };
+  const meas = days.map((d) => sumDay((i, tm) => sel.byKey[tm], d));
+  const model = days.map((d) => sumDay((i) => state.hourly[site.id].model[i], d));
+  const W = chartBox.clientWidth || 800;
+  const H = W < 500 ? 200 : 230;
+  const m = { l: 34, r: 8, t: 16, b: 34 };
+  const pw = W - m.l - m.r;
+  const ph = H - m.t - m.b;
+  const n = days.length;
+  let max = 0;
+  meas.concat(model).forEach((v) => { if (v > max) max = v; });
+  const ymax = niceMax(Math.max(max, 2));
+  const y = (v) => m.t + ph - (v / ymax) * ph;
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, height: H });
+  [0, ymax / 2, ymax].forEach((v) => {
+    svgEl('line', { x1: m.l, x2: m.l + pw, y1: y(v), y2: y(v), class: v === 0 ? 'base-line' : 'grid-line' }, svg);
+    svgEl('text', { x: m.l - 6, y: y(v) + 4, 'text-anchor': 'end' }, svg).textContent = fmtMm(v);
+  });
+  const gw = pw / n;
+  const inner = Math.min(gw * 0.78, 40);
+  const bw = Math.max(1, (inner - 2) / 2);
+  const every = gw < 22 ? Math.ceil(22 / gw) * 2 : gw < 36 ? 2 : 1;
+  let maxBar = null;
+  days.forEach((d, i) => {
+    const gx = m.l + i * gw + (gw - inner) / 2;
+    [[meas[i], 'var(--gauge-meas)'], [model[i], 'var(--gauge-model)']].forEach(([v, c], k) => {
+      if (!v) return;
+      const top = y(v);
+      svgEl('path', { d: barPath(gx + k * (bw + 2), top, bw, m.t + ph - top, 4), fill: c }, svg);
+      if (k === 0 && (!maxBar || v > maxBar.v)) maxBar = { v, x: gx + bw / 2 };
+    });
+    if ((n - 1 - i) % every === 0) {
+      const cx = m.l + i * gw + gw / 2;
+      svgEl('text', { x: cx, y: H - m.b + 14, 'text-anchor': 'middle' }, svg).textContent = d === today ? 'hoje' : WD[weekday(d)];
+      svgEl('text', { x: cx, y: H - m.b + 27, 'text-anchor': 'middle' }, svg).textContent = fmtDay(d, false);
+    }
+    const hit = svgEl('rect', { x: m.l + i * gw, y: m.t, width: gw, height: ph, class: 'bar-hit' }, svg);
+    hit.addEventListener('pointermove', (ev) => showTip(`<div class="t">${fmtDay(d)}</div>`
+      + `<div class="r"><span><i class="swatch" style="background:var(--gauge-meas)"></i>Medido</span><b>${mm(meas[i])} mm</b></div>`
+      + `<div class="r"><span><i class="swatch" style="background:var(--gauge-model)"></i>Modelo</span><b>${mm(model[i])} mm</b></div>`, ev));
+    hit.addEventListener('pointerleave', hideTip);
+  });
+  if (maxBar && maxBar.v > 0) svgEl('text', { x: maxBar.x, y: y(maxBar.v) - 5, 'text-anchor': 'middle', class: 'val-label' }, svg).textContent = fmtMm(maxBar.v);
+  chartBox.appendChild(svg);
+  const tot = (arr) => arr.reduce((a, b) => a + (b || 0), 0);
+  $('#legend-gauge').innerHTML = `<span><i class="swatch" style="background:var(--gauge-meas)"></i>Medido · ${titleCase(sel.city)} ${sel.name} (${fmtMm(tot(meas))} mm)</span>`
+    + `<span><i class="swatch" style="background:var(--gauge-model)"></i>Modelo · ${site.name} (${fmtMm(tot(model))} mm)</span>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -881,6 +1237,7 @@ function renderAll() {
   renderDaily();
   renderHourly();
   renderCumulative();
+  renderGauges();
   renderModels();
   renderTable();
 }
@@ -889,6 +1246,8 @@ async function refresh() {
   $('#updated').textContent = 'carregando…';
   try {
     await loadData();
+    try { await loadGauges(); } catch (err) { console.warn('CEMADEN', err); state.stations = []; }
+    mergeGauges();
     state.month = null;
     state.models = null;
     const now = new Date().toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
@@ -1025,17 +1384,11 @@ function init() {
     state.modelSite = b.dataset.site;
     renderModels();
   });
-  $('#cum-mode').addEventListener('click', (ev) => {
-    const b = ev.target.closest('button');
-    if (!b) return;
-    state.cumMode = b.dataset.mode;
-    renderCumulative();
-  });
 
   let rt;
   window.addEventListener('resize', () => {
     clearTimeout(rt);
-    rt = setTimeout(() => { if (state.times.length) { renderDaily(); renderHourly(); renderCumulative(); } }, 150);
+    rt = setTimeout(() => { if (state.times.length) { renderDaily(); renderHourly(); renderCumulative(); renderGauges(); } }, 150);
   });
 
   refresh();

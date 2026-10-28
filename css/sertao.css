@@ -265,7 +265,8 @@ th { font: 400 16px var(--display); letter-spacing: 0.04em; }
 
 /* rodapé panorâmico: caatinga ↔ mata */
 .pano { margin-top: 8px; }
-.pano svg { display: block; width: 100%; height: 170px; }
+/* altura acompanha a largura (árvores inteiras); no celular corta só as laterais */
+.pano svg { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 185; min-height: 120px; }
 .pano .pano-ground { fill: #e7ad66; stroke: #1a0d08; stroke-width: 2; }
 .pano .pano-ink path { fill: none; stroke: #1a0d08; stroke-linecap: round; stroke-linejoin: round; }
 .pano .pano-canopy { fill: var(--mata); stroke: #1a0d08; stroke-width: 2; }
@@ -294,7 +295,6 @@ th { font: 400 16px var(--display); letter-spacing: 0.04em; }
 .pano .pano-lobo .l-tail { fill: #c4501c; stroke: #1a0d08; stroke-width: 1.5; }
 .pano .pano-lobo .l-mane { fill: none; stroke: #1a0d08; stroke-width: 4; stroke-linecap: round; }
 .pano .pano-lobo .l-ear { fill: #1a0d08; }
-.pano svg { height: 190px; }
 @media (prefers-reduced-motion: reduce) { #scene .woodpecker .peck { animation: none !important; } }
 
 /* tabela de modelos */
@@ -306,3 +306,47 @@ table.models tr.spread td { color: var(--muted); font-size: 12px; }
 table.models tr.cptec td { font-size: 12px; border-top: 2px solid var(--ink); }
 table.models td.cptec-rain { background: #cde2fb; }
 table.models .res { font-size: 10.5px; color: var(--muted); letter-spacing: 0.02em; }
+.card .source { margin: -4px 0 0; font-size: 12px; color: var(--muted); }
+
+/* pluviômetros */
+:root { --gauge-meas: #1a0d08; --gauge-model: #c9a679; }
+:root[data-theme="dark"] { --gauge-meas: #f6dcae; --gauge-model: #8a6a4a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --gauge-meas: #f6dcae; --gauge-model: #8a6a4a; } }
+table.gauges { margin-top: 8px; }
+table.gauges tbody tr { cursor: pointer; }
+table.gauges tbody tr:hover { background: var(--wash); }
+table.gauges tr.sel td { background: rgba(26, 13, 8, 0.08); font-weight: 700; }
+table.gauges tr.off td { color: var(--muted); }
+table.gauges .used { font-size: 10.5px; padding: 1px 6px; border: 1px solid var(--ink); margin-left: 4px; font-weight: 700; }
+.gstat { font-size: 12px; font-weight: 700; }
+.g-ok::before, .g-off::before, .g-bad::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; border: 1.5px solid var(--ink); vertical-align: -1px; }
+.g-ok::before { background: var(--good); }
+.g-off::before { background: #bdbdbd; }
+.g-bad::before { background: var(--critical); }
+
+/* leituras do pluviômetro e do modelo nos cartões */
+.views { display: grid; gap: 6px; padding: 10px 12px; border: 1.5px dashed var(--axis); }
+.view { display: grid; grid-template-columns: 92px auto 1fr; align-items: center; gap: 10px; font-size: 13px; }
+.view .vlabel { font: 400 16px var(--display); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); }
+.view .vdetail { color: var(--muted); font-size: 12px; }
+.view.off .vdetail { grid-column: 2 / -1; }
+@media (max-width: 420px) { .view { grid-template-columns: 82px auto; } .view .vdetail { grid-column: 1 / -1; } }
+
+/* legenda do acumulado: cor = local, traço = fonte */
+.cum-legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: -4px 0 10px; font-size: 12px; color: var(--ink-2); }
+.cum-legend .lg-group { display: inline-flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.cum-legend .lg-group + .lg-group { padding-left: 18px; border-left: 1.5px solid var(--axis); }
+.cum-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cum-legend .lsample { color: var(--ink); flex: none; }
+.cum-legend .lg-group:first-child .lsample { color: inherit; }
+.cum-legend .lg-note { flex-basis: 100%; color: var(--muted); font-size: 11.5px; }
+
+/* tabela + mapa das estações */
+.gauge-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 18px; align-items: start; margin-top: 8px; }
+#gauge-map { height: 420px; border: 2px solid var(--ink); z-index: 0; }
+#gauge-map .leaflet-tile-pane { filter: sepia(0.55) saturate(1.15) hue-rotate(-12deg) contrast(1.03); }
+.dist-label { background: #f7dfb2; border: 1px solid #1a0d08; border-radius: 0; box-shadow: none; font: 600 11px var(--font); padding: 1px 6px; }
+.dist-label::before { display: none; }
+@media (max-width: 900px) { .gauge-grid { grid-template-columns: 1fr; } #gauge-map { height: 320px; } }
+table.gauges th, table.gauges td { padding: 6px 7px; }
+table.gauges td:first-child { white-space: normal; min-width: 130px; }
