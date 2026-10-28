@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=League+Gothic&family=Archivo+Black&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="css/style.css?v=202610281553">
-  <link rel="stylesheet" href="css/sertao.css?v=202610281553">
+  <link rel="stylesheet" href="css/style.css?v=202610281611">
+  <link rel="stylesheet" href="css/sertao.css?v=202610281611">
 </head>
 <body>
   <header class="hero">
@@ -222,6 +222,15 @@
       </div>
 
       <div class="panel board wide">
+        <div class="panel-head">
+          <h2 class="tape t-yellow">Modelos <span class="unit">previsão de chuva por dia · mm</span></h2>
+          <div id="models-site" class="seg" role="group" aria-label="Local"></div>
+        </div>
+        <div id="models-wrap" class="table-wrap"></div>
+        <p class="hint">Quando os modelos discordam, a previsão é incerta. CPTEC/INPE: previsão oficial brasileira para Iperó (condição do dia, sem mm).</p>
+      </div>
+
+      <div class="panel board wide">
         <details>
           <summary><span class="tape t-violet">Tabela</span></summary>
           <div id="table-wrap" class="table-wrap"></div>
@@ -287,7 +296,7 @@
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="js/scene.js?v=202610281553"></script>
-  <script src="js/app.js?v=202610281553"></script>
+  <script src="js/scene.js?v=202610281611"></script>
+  <script src="js/app.js?v=202610281611"></script>
 </body>
 </html>

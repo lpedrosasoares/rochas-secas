@@ -718,6 +718,91 @@ function renderCumulative() {
 }
 
 // ---------------------------------------------------------------------------
+// Modelos: previsão diária de chuva de cada modelo (tabela com escala de azul)
+// ---------------------------------------------------------------------------
+const MODELS = [
+  { id: 'ecmwf_ifs025', name: 'ECMWF', from: 'Europa' },
+  { id: 'gfs_seamless', name: 'GFS', from: 'EUA' },
+  { id: 'icon_seamless', name: 'ICON', from: 'Alemanha' },
+  { id: 'jma_seamless', name: 'JMA', from: 'Japão' },
+];
+state.models = null;
+state.modelSite = SITES[0].id;
+
+async function loadModels() {
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + `?latitude=${SITES.map((x) => x.lat).join(',')}&longitude=${SITES.map((x) => x.lon).join(',')}`
+    + `&daily=precipitation_sum&models=${MODELS.map((x) => x.id).join(',')}`
+    + `&forecast_days=${FORECAST_DAYS}&timezone=${encodeURIComponent(TZ)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Open-Meteo respondeu ${res.status}`);
+  let json = await res.json();
+  if (!Array.isArray(json)) json = [json];
+  const out = { days: json[0].daily.time, site: {} };
+  SITES.forEach((x, i) => {
+    out.site[x.id] = {};
+    MODELS.forEach((mo) => { out.site[x.id][mo.id] = json[i].daily[`precipitation_sum_${mo.id}`] || []; });
+  });
+  // previsão oficial brasileira (CPTEC/INPE) para Iperó, via BrasilAPI
+  try {
+    const r = await fetch('https://brasilapi.com.br/api/cptec/v1/clima/previsao/2437/6');
+    if (r.ok) {
+      const j = await r.json();
+      out.cptec = Object.fromEntries((j.clima || []).map((c) => [c.data, c]));
+    }
+  } catch { /* sem CPTEC: a tabela segue só com os modelos */ }
+  state.models = out;
+}
+
+// azul sequencial do zero (claro) ao muito (escuro)
+const SEQ = ['#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b'];
+function seqColor(v) {
+  if (v == null || v < 0.1) return null;
+  const k = Math.min(SEQ.length - 1, Math.floor(Math.log2(v + 1) * 1.5));
+  return SEQ[k];
+}
+
+function renderModels() {
+  const seg = $('#models-site');
+  seg.innerHTML = SITES.map((x) => `<button data-site="${x.id}" class="${x.id === state.modelSite ? 'on' : ''}">${x.name.split(' ')[0]}</button>`).join('');
+  const wrap = $('#models-wrap');
+  if (!state.models) {
+    wrap.innerHTML = '<p class="note">carregando modelos…</p>';
+    loadModels().then(renderModels).catch((err) => { wrap.innerHTML = `<p class="note">Não consegui carregar os modelos (${err.message}).</p>`; });
+    return;
+  }
+  const { days, site } = state.models;
+  const data = site[state.modelSite];
+  const today = state.times[state.nowIdx].slice(0, 10);
+  const cell = (v) => {
+    const c = seqColor(v);
+    const dark = c && SEQ.indexOf(c) >= 3;
+    return `<td style="${c ? `background:${c};` : ''}${dark ? 'color:#fff;' : ''}">${fmtMm(v)}</td>`;
+  };
+  const mean = days.map((_, i) => {
+    const v = MODELS.map((mo) => data[mo.id][i]).filter((x) => x != null);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  });
+  const spread = days.map((_, i) => {
+    const v = MODELS.map((mo) => data[mo.id][i]).filter((x) => x != null);
+    return v.length ? Math.max(...v) - Math.min(...v) : 0;
+  });
+  wrap.innerHTML = `<table class="models">
+    <thead><tr><th>Modelo</th>${days.map((d) => `<th>${d === today ? 'hoje' : fmtDay(d)}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${MODELS.map((mo) => `<tr><td>${mo.name} <span class="muted">${mo.from}</span></td>${days.map((_, i) => cell(data[mo.id][i])).join('')}</tr>`).join('')}
+      <tr class="mean"><td><b>Média</b></td>${mean.map((v) => cell(v)).join('')}</tr>
+      <tr class="spread"><td>Diferença entre modelos</td>${spread.map((v) => `<td>${fmtMm(v)} mm</td>`).join('')}</tr>
+      ${state.models.cptec ? `<tr class="cptec"><td>CPTEC/INPE <span class="muted">Brasil</span></td>${days.map((d) => {
+        const c = state.models.cptec[d];
+        if (!c) return '<td class="muted">–</td>';
+        const rain = /chuv|pancada|trovoada|garoa/i.test(c.condicao_desc);
+        return `<td class="${rain ? 'cptec-rain' : ''}">${c.condicao_desc}</td>`;
+      }).join('')}</tr>` : ''}
+    </tbody></table>`;
+}
+
+// ---------------------------------------------------------------------------
 // Tabela
 // ---------------------------------------------------------------------------
 function renderTable() {
@@ -794,6 +879,7 @@ function renderAll() {
   renderDaily();
   renderHourly();
   renderCumulative();
+  renderModels();
   renderTable();
 }
 
@@ -802,6 +888,7 @@ async function refresh() {
   try {
     await loadData();
     state.month = null;
+    state.models = null;
     const now = new Date().toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
     $('#updated').textContent = `atualizado ${now}`;
     renderAll();
@@ -930,6 +1017,12 @@ function init() {
   $('#target-slider').addEventListener('input', (ev) => setTarget(Number(ev.target.value), true));
   $('#target-slider').addEventListener('change', (ev) => setTarget(Number(ev.target.value)));
   $('#refresh').addEventListener('click', refresh);
+  $('#models-site').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    state.modelSite = b.dataset.site;
+    renderModels();
+  });
   $('#cum-mode').addEventListener('click', (ev) => {
     const b = ev.target.closest('button');
     if (!b) return;

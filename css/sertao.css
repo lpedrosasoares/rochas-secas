@@ -296,3 +296,12 @@ th { font: 400 16px var(--display); letter-spacing: 0.04em; }
 .pano .pano-lobo .l-ear { fill: #1a0d08; }
 .pano svg { height: 190px; }
 @media (prefers-reduced-motion: reduce) { #scene .woodpecker .peck { animation: none !important; } }
+
+/* tabela de modelos */
+table.models td, table.models th { text-align: center; font-variant-numeric: tabular-nums; }
+table.models th:first-child { text-align: left; }
+table.models td:first-child { text-align: left; white-space: nowrap; }
+table.models tr.mean td { border-top: 2px solid var(--ink); font-weight: 700; }
+table.models tr.spread td { color: var(--muted); font-size: 12px; }
+table.models tr.cptec td { font-size: 12px; border-top: 2px solid var(--ink); }
+table.models td.cptec-rain { background: #cde2fb; }
