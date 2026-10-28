@@ -305,3 +305,4 @@ table.models tr.mean td { border-top: 2px solid var(--ink); font-weight: 700; }
 table.models tr.spread td { color: var(--muted); font-size: 12px; }
 table.models tr.cptec td { font-size: 12px; border-top: 2px solid var(--ink); }
 table.models td.cptec-rain { background: #cde2fb; }
+table.models .res { font-size: 10.5px; color: var(--muted); letter-spacing: 0.02em; }

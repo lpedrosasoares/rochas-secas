@@ -721,10 +721,12 @@ function renderCumulative() {
 // Modelos: previsão diária de chuva de cada modelo (tabela com escala de azul)
 // ---------------------------------------------------------------------------
 const MODELS = [
-  { id: 'ecmwf_ifs025', name: 'ECMWF', from: 'Europa' },
-  { id: 'gfs_seamless', name: 'GFS', from: 'EUA' },
-  { id: 'icon_seamless', name: 'ICON', from: 'Alemanha' },
-  { id: 'jma_seamless', name: 'JMA', from: 'Japão' },
+  // resolução da grade do modelo na região (fora da Europa/EUA/Japão valem as versões globais)
+  { id: 'ecmwf_ifs', name: 'ECMWF', from: 'Europa', res: '9 km' }, // o mesmo dos gráficos
+  { id: 'ecmwf_ifs025', name: 'ECMWF', from: 'Europa', res: '25 km' },
+  { id: 'gfs_seamless', name: 'GFS', from: 'EUA', res: '25 km' },
+  { id: 'icon_seamless', name: 'ICON', from: 'Alemanha', res: '13 km' },
+  { id: 'jma_seamless', name: 'JMA', from: 'Japão', res: '55 km' },
 ];
 state.models = null;
 state.modelSite = SITES[0].id;
@@ -790,10 +792,10 @@ function renderModels() {
   wrap.innerHTML = `<table class="models">
     <thead><tr><th>Modelo</th>${days.map((d) => `<th>${d === today ? 'hoje' : fmtDay(d)}</th>`).join('')}</tr></thead>
     <tbody>
-      ${MODELS.map((mo) => `<tr><td>${mo.name} <span class="muted">${mo.from}</span></td>${days.map((_, i) => cell(data[mo.id][i])).join('')}</tr>`).join('')}
+      ${MODELS.map((mo) => `<tr><td>${mo.name} <span class="muted">${mo.from}</span> <small class="res">(res ${mo.res})</small></td>${days.map((_, i) => cell(data[mo.id][i])).join('')}</tr>`).join('')}
       <tr class="mean"><td><b>Média</b></td>${mean.map((v) => cell(v)).join('')}</tr>
       <tr class="spread"><td>Diferença entre modelos</td>${spread.map((v) => `<td>${fmtMm(v)} mm</td>`).join('')}</tr>
-      ${state.models.cptec ? `<tr class="cptec"><td>CPTEC/INPE <span class="muted">Brasil</span></td>${days.map((d) => {
+      ${state.models.cptec ? `<tr class="cptec"><td>CPTEC/INPE <span class="muted">Brasil</span> <small class="res">cidade</small></td>${days.map((d) => {
         const c = state.models.cptec[d];
         if (!c) return '<td class="muted">–</td>';
         const rain = /chuv|pancada|trovoada|garoa/i.test(c.condicao_desc);
