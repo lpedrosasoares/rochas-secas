@@ -115,7 +115,7 @@ async function loadData() {
   const lon = SITES.map((s) => s.lon).join(',');
   const url = 'https://api.open-meteo.com/v1/forecast'
     + `?latitude=${lat}&longitude=${lon}`
-    + '&hourly=precipitation,relative_humidity_2m,precipitation_probability'
+    + '&hourly=precipitation,relative_humidity_2m,precipitation_probability,is_day'
     + '&daily=precipitation_sum,precipitation_hours,precipitation_probability_max,temperature_2m_max'
     + `&past_days=${state.pastDays}&forecast_days=${FORECAST_DAYS}`
     + `&timezone=${encodeURIComponent(TZ)}`;
@@ -132,6 +132,7 @@ async function loadData() {
       precip: d.hourly.precipitation,
       rh: d.hourly.relative_humidity_2m,
       prob: d.hourly.precipitation_probability,
+      isDay: d.hourly.is_day,
     };
     state.daily[s.id] = {
       sum: d.daily.precipitation_sum,
@@ -313,7 +314,11 @@ function renderHero() {
     const st = STATUS[e.status];
     return `<span class="hero-chip"><span class="pill ${st.cls}">${st.label}</span>${s.name}</span>`;
   }).join('');
-  if (typeof Scene !== 'undefined') Scene.setWeather(worst);
+  if (typeof Scene !== 'undefined') {
+    Scene.setWeather(worst);
+    const isDay = state.hourly[SITES[0].id].isDay;
+    if (Scene.setNight && isDay) Scene.setNight(isDay[state.target] === 0);
+  }
 }
 
 // Leituras separadas e veredito final combinado:

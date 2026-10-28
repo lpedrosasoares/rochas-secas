@@ -350,3 +350,24 @@ table.gauges .used { font-size: 10.5px; padding: 1px 6px; border: 1px solid var(
 @media (max-width: 900px) { .gauge-grid { grid-template-columns: 1fr; } #gauge-map { height: 320px; } }
 table.gauges th, table.gauges td { padding: 6px 7px; }
 table.gauges td:first-child { white-space: normal; min-width: 130px; }
+
+/* noite na cena: sombra azulada, lua, estrelas e headlamps */
+#scene .night-shade, #scene .night-sky, #scene #beams { display: none; }
+#scene.night .night-shade, #scene.night .night-sky, #scene.night #beams { display: inline; }
+#scene .night-shade { fill: rgba(8, 14, 40, 0.62); }
+#scene.night .sun, #scene.night .sun-hatch, #scene.night .urubus { opacity: 0; }
+#scene .moon { fill: #f3ecd6; stroke: #1a0d08; stroke-width: 1; }
+#scene .crater { fill: rgba(26, 13, 8, 0.12); }
+#scene .stars circle { fill: #fff8e0; animation: twinkle 3s ease-in-out infinite alternate; }
+#scene.rainy .stars, #scene.rainy .moon, #scene.rainy .crater { opacity: 0.15; }
+@keyframes twinkle { from { opacity: 0.25; } to { opacity: 1; } }
+#scene .beam { mix-blend-mode: screen; }
+#scene .lamp { fill: #fffbe6; stroke: #1a0d08; stroke-width: 0.7; }
+#scene .lamp-strap { fill: none; stroke: #1a0d08; stroke-width: 1.6; stroke-linecap: round; }
+#scene.night #climber, #scene.night #spotters { filter: brightness(0.82); }
+@media (prefers-reduced-motion: reduce) { #scene .stars circle { animation: none; } }
+#scene.night { --sky-1: #070d24; --sky-2: #2b2448; }
+#scene.night.rainy { --sky-1: #05070f; --sky-2: #1c1d26; }
+#scene.night .sky-hatch { opacity: 0.4; }
+/* na chuva a spotter não está na cena: a lanterna dela também some */
+#scene.rainy .lampset-spotter { display: none; }

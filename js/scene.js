@@ -53,6 +53,7 @@ const Scene = (() => {
   const SIT = pose(P(143, 266), P(177, 266), P(138, 283), P(182, 283), P(160, 248), P(160, 274));
 
   let svg, climber, ticks, puffs, parts = {};
+  const lamps = {};
   let timeline = [];
   let seg = 0;
   let segStart = 0;
@@ -124,6 +125,11 @@ const Scene = (() => {
     parts.shorts.setAttribute('x2', H.x + u.x * 4); parts.shorts.setAttribute('y2', H.y + u.y * 4);
     parts.head.setAttribute('cx', S.x + u.x * 11); parts.head.setAttribute('cy', S.y + u.y * 11);
     parts.beanie.setAttribute('cx', S.x + u.x * 14.5); parts.beanie.setAttribute('cy', S.y + u.y * 14.5);
+    const head = P(S.x + u.x * 11, S.y + u.y * 11);
+    const hands = mid(p.LH, p.RH);
+    const toHands = P(hands.x - head.x, hands.y - head.y);
+    const look = Math.hypot(toHands.x, toHands.y) > 10 && toHands.y < 4 ? toHands : P(p.face || 1, 0.3);
+    setLamp('climber', head, look);
     parts.bag.setAttribute('cx', H.x + n.x * 1); parts.bag.setAttribute('cy', H.y + 4);
     const cp = (q, k, w) => `${(q.x + n.x * w + u.x * k).toFixed(1)},${(q.y + n.y * w + u.y * k).toFixed(1)}`;
     parts.coat.setAttribute('points', [cp(S, 2, 8), cp(S, 2, -8), cp(H, -9, -12), cp(H, -9, 12)].join(' '));
@@ -291,6 +297,7 @@ const Scene = (() => {
       const hx = S.x + 1 + look.x * 1.5;
       const hyy = S.y - 11 + look.y * 1.2;
       sp.head.setAttribute('cx', hx); sp.head.setAttribute('cy', hyy);
+      setLamp(`spotter${i}`, P(hx, hyy), mode === 'spot' ? look : mode === 'cheer' ? P(0.6, -1) : P(1, 0.15), 110);
       sp.hairEl.setAttribute('d', `M${hx - 7.8} ${hyy + 1} A 7.8 7.8 0 0 1 ${hx + 7.8} ${hyy - 1} L ${hx + 3} ${hyy - 2} Z`);
       const tw = Math.sin(now / (walking || hop ? 140 : 300) + i) * 3;
       const bx = hx - 7;
@@ -311,6 +318,38 @@ const Scene = (() => {
     void d.getBoundingClientRect();
     d.classList.add('flip');
     setTimeout(() => chalkPuff(P(84, 282), 5), 950);
+  }
+
+  // ---- headlamp (só aparece à noite) ----
+  function buildLamp(name) {
+    const defs = svg.querySelector('defs');
+    const grad = el('radialGradient', { id: `beam-${name}`, gradientUnits: 'userSpaceOnUse' }, defs);
+    el('stop', { offset: '0', 'stop-color': '#fff6c8', 'stop-opacity': '0.8' }, grad);
+    el('stop', { offset: '0.55', 'stop-color': '#ffe9a8', 'stop-opacity': '0.28' }, grad);
+    el('stop', { offset: '1', 'stop-color': '#ffe9a8', 'stop-opacity': '0' }, grad);
+    const g = el('g', { class: `lampset ${name.startsWith('spotter') ? 'lampset-spotter' : 'lampset-climber'}` }, svg.querySelector('#beams'));
+    lamps[name] = {
+      grad,
+      beam: el('polygon', { class: 'beam', fill: `url(#beam-${name})` }, g),
+      strap: el('path', { class: 'lamp-strap' }, g),
+      dot: el('circle', { class: 'lamp', r: 2.4 }, g),
+    };
+  }
+  // head = centro da cabeça; dir = para onde a pessoa olha
+  function setLamp(name, head, dir, len = 120, half = 0.26) {
+    const L = lamps[name];
+    if (!L) return;
+    const d = norm(dir);
+    const o = P(head.x + d.x * 6.5, head.y + d.y * 6.5 - 1.5);
+    const rot = (a) => P(d.x * Math.cos(a) - d.y * Math.sin(a), d.x * Math.sin(a) + d.y * Math.cos(a));
+    const a = rot(half);
+    const b = rot(-half);
+    L.beam.setAttribute('points', `${o.x.toFixed(1)},${o.y.toFixed(1)} ${(o.x + a.x * len).toFixed(1)},${(o.y + a.y * len).toFixed(1)} ${(o.x + b.x * len).toFixed(1)},${(o.y + b.y * len).toFixed(1)}`);
+    L.grad.setAttribute('cx', o.x); L.grad.setAttribute('cy', o.y); L.grad.setAttribute('r', len);
+    L.dot.setAttribute('cx', o.x.toFixed(1)); L.dot.setAttribute('cy', o.y.toFixed(1));
+    // elástico da lanterna em volta da cabeça
+    const n = P(-d.y, d.x);
+    L.strap.setAttribute('d', `M${(head.x + n.x * 7.2 - d.x).toFixed(1)} ${(head.y + n.y * 7.2 - d.y - 1.5).toFixed(1)} Q ${(head.x + d.x * 8).toFixed(1)} ${(head.y + d.y * 8 - 1.5).toFixed(1)} ${(head.x - n.x * 7.2 - d.x).toFixed(1)} ${(head.y - n.y * 7.2 - d.y - 1.5).toFixed(1)}`);
   }
 
   // ---- magnésio ----
@@ -485,6 +524,8 @@ const Scene = (() => {
     climber = svg.querySelector('#climber');
     buildSpotters(svg.querySelector('#spotters'));
     buildClimber(climber);
+    buildLamp('climber');
+    SPOTTERS.forEach((_, i) => buildLamp(`spotter${i}`));
 
     // chuva
     const rain = svg.querySelector('#rain');
@@ -502,5 +543,7 @@ const Scene = (() => {
     startClimb();
   }
 
-  return { init, setWeather };
+  function setNight(on) { if (svg) svg.classList.toggle('night', !!on); }
+
+  return { init, setWeather, setNight };
 })();

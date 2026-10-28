@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=League+Gothic&family=Archivo+Black&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="css/style.css?v=202610281729">
-  <link rel="stylesheet" href="css/sertao.css?v=202610281729">
+  <link rel="stylesheet" href="css/style.css?v=202610281747">
+  <link rel="stylesheet" href="css/sertao.css?v=202610281747">
 </head>
 <body>
   <header class="hero">
@@ -110,6 +110,13 @@
         <path class="rock-shade" d="M330 285 C 318 262, 300 245, 270 228 C 245 214, 222 206, 204 198 C 214 214, 250 230, 282 252 C 300 264, 312 276, 316 285 Z"/>
         <path class="rock-shade" d="M470 140 C 510 166, 545 222, 560 285 L 500 285 C 504 236, 492 182, 470 140 Z"/>
         <path class="strata" d="M232 168 C 300 150, 400 150, 486 168 M262 206 C 340 190, 440 196, 520 214 M320 250 C 380 238, 470 242, 548 254"/>
+        <!-- noite: sombra, lua e estrelas (só aparecem quando o horário avaliado é noite) -->
+        <rect class="night-shade" x="0" y="0" width="600" height="300"/>
+        <g class="night-sky">
+          <g class="stars"><circle cx="315" cy="17" r="1.5" style="animation-delay:-1.95s"/><circle cx="187" cy="42" r="0.8" style="animation-delay:-1.10s"/><circle cx="179" cy="40" r="1" style="animation-delay:-0.11s"/><circle cx="372" cy="34" r="0.8" style="animation-delay:-0.72s"/><circle cx="432" cy="35" r="0.8" style="animation-delay:-2.48s"/><circle cx="213" cy="22" r="0.8" style="animation-delay:-1.73s"/><circle cx="353" cy="11" r="1" style="animation-delay:-0.14s"/><circle cx="589" cy="16" r="1.2" style="animation-delay:-1.26s"/><circle cx="426" cy="15" r="1.2" style="animation-delay:-1.68s"/><circle cx="499" cy="19" r="0.8" style="animation-delay:-1.74s"/><circle cx="477" cy="20" r="1.2" style="animation-delay:-0.29s"/><circle cx="514" cy="12" r="0.8" style="animation-delay:-1.86s"/><circle cx="404" cy="51" r="1.5" style="animation-delay:-2.33s"/><circle cx="388" cy="45" r="1.5" style="animation-delay:-1.08s"/><circle cx="277" cy="58" r="1" style="animation-delay:-2.10s"/><circle cx="274" cy="13" r="1.2" style="animation-delay:-1.58s"/><circle cx="325" cy="54" r="1.5" style="animation-delay:-0.86s"/><circle cx="187" cy="15" r="1.5" style="animation-delay:-0.49s"/><circle cx="325" cy="17" r="1.5" style="animation-delay:-1.27s"/><circle cx="492" cy="12" r="1.2" style="animation-delay:-1.02s"/><circle cx="329" cy="46" r="1.5" style="animation-delay:-1.74s"/><circle cx="383" cy="12" r="0.8" style="animation-delay:-2.83s"/><circle cx="392" cy="52" r="0.8" style="animation-delay:-0.18s"/><circle cx="509" cy="27" r="1.5" style="animation-delay:-0.85s"/><circle cx="347" cy="50" r="1.2" style="animation-delay:-0.07s"/><circle cx="386" cy="30" r="1" style="animation-delay:-1.83s"/><circle cx="402" cy="11" r="1" style="animation-delay:-2.30s"/><circle cx="216" cy="55" r="1" style="animation-delay:-1.19s"/></g>
+          <circle class="moon" cx="110" cy="72" r="22"/>
+          <circle class="crater" cx="102" cy="66" r="4"/><circle class="crater" cx="117" cy="80" r="3"/><circle class="crater" cx="116" cy="62" r="2"/>
+        </g>
         <g id="chalk-ticks"></g>
         <!-- vira-lata caramelo deitado -->
         <g class="dog" transform="translate(84 0)">
@@ -133,6 +140,7 @@
         </g>
         <g id="spotters"></g>
         <g id="climber"></g>
+        <g id="beams"></g>
         <g id="scene-puffs"></g>
         <g id="rain"></g>
       </svg>
@@ -293,7 +301,7 @@
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="js/scene.js?v=202610281729"></script>
-  <script src="js/app.js?v=202610281729"></script>
+  <script src="js/scene.js?v=202610281747"></script>
+  <script src="js/app.js?v=202610281747"></script>
 </body>
 </html>
