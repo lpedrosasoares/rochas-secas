@@ -27,6 +27,10 @@ const SITES = [
   },
 ];
 
+// Aba ativa: cada setor tem a sua página (#iperocks, #flona)
+const siteFromHash = () => (SITES.find((x) => `#${x.id}` === location.hash) || SITES[0]).id;
+const VIEW = () => SITES.filter((x) => x.id === state.site);
+
 const STATUS = {
   good: { label: 'Bora', icon: '', cls: 's-good', color: '--good', head: 'Rocha seca.' },
   warning: { label: 'Talvez', icon: '', cls: 's-warning', color: '--warning', head: 'Pode estar úmida.' },
@@ -40,6 +44,7 @@ const RAIN_HOUR = 0.2; // mm/h considerado "choveu"
 // Estado
 // ---------------------------------------------------------------------------
 const state = {
+  site: null,     // setor da aba ativa
   pastDays: 14,
   times: [],      // horas locais 'YYYY-MM-DDTHH:00'
   days: [],       // dias locais 'YYYY-MM-DD'
@@ -306,19 +311,40 @@ function tipRow(site, value) {
 // Cartões de veredito
 // ---------------------------------------------------------------------------
 function renderHero() {
-  const order = ['good', 'warning', 'serious', 'critical'];
-  let worst = 'good';
+  let active = 'good';
   $('#hero-status').innerHTML = SITES.map((s) => {
     const e = readings(s);
-    if (order.indexOf(e.status) > order.indexOf(worst)) worst = e.status;
+    if (s.id === state.site) active = e.status;
     const st = STATUS[e.status];
-    return `<span class="hero-chip"><span class="pill ${st.cls}">${st.label}</span>${s.name}</span>`;
+    return `<a class="hero-chip ${s.id === state.site ? 'on' : ''}" href="#${s.id}"><span class="pill ${st.cls}">${st.label}</span>${s.name}</a>`;
   }).join('');
+  renderTabs();
   if (typeof Scene !== 'undefined') {
-    Scene.setWeather(worst);
-    const isDay = state.hourly[SITES[0].id].isDay;
+    if (Scene.setScene) Scene.setScene(state.site === 'flona' ? 'via' : 'boulder');
+    Scene.setWeather(active);
+    const isDay = state.hourly[state.site].isDay;
     if (Scene.setNight && isDay) Scene.setNight(isDay[state.target] === 0);
   }
+}
+
+// Barra de abas: um botão por setor, com o veredito ao lado do nome
+function renderTabs() {
+  const nav = $('#site-tabs');
+  if (!nav) return;
+  nav.innerHTML = SITES.map((s) => {
+    const st = STATUS[readings(s).status];
+    const on = s.id === state.site;
+    return `<a role="tab" aria-selected="${on}" class="tab ${on ? 'on' : ''}" href="#${s.id}" style="--site:var(${s.color})">
+      <i class="swatch" style="background:var(${s.color})"></i><span class="tab-name">${s.name}</span><span class="pill ${st.cls}">${st.label}</span></a>`;
+  }).join('');
+}
+
+function setSite(id) {
+  if (!SITES.some((x) => x.id === id) || id === state.site) return;
+  state.site = id;
+  state.gaugeSel = null;
+  document.title = `Rochas Secas · ${SITES.find((x) => x.id === id).name}`;
+  if (state.times.length) renderAll();
 }
 
 // Leituras separadas e veredito final combinado:
@@ -361,6 +387,7 @@ function viewsHtml(s, R) {
 }
 
 function renderCards() {
+  const SITES = VIEW(); // só o setor da aba
   renderHero();
   const wrap = $('#cards');
   wrap.innerHTML = '';
@@ -503,6 +530,7 @@ async function toggleRadar(ev) {
 // Gráfico diário (barras agrupadas)
 // ---------------------------------------------------------------------------
 function renderDaily() {
+  const SITES = VIEW(); // só o setor da aba
   const box = $('#daily-chart');
   box.innerHTML = '';
   const W = box.clientWidth || 600;
@@ -602,6 +630,7 @@ function renderDaily() {
 // Gráfico horário (pequenos múltiplos, um por local, mesma escala)
 // ---------------------------------------------------------------------------
 function renderHourly() {
+  const SITES = VIEW(); // só o setor da aba
   const box = $('#hourly-chart');
   box.innerHTML = '';
   const W = box.clientWidth || 800;
@@ -745,6 +774,7 @@ async function loadMonth() {
 }
 
 function cumulativeData() {
+  const SITES = VIEW(); // só o setor da aba
   if (state.cumMode === 'mes' && state.month) {
     const { days, sum, key } = state.month;
     const today = state.times[state.nowIdx].slice(0, 10);
@@ -792,6 +822,7 @@ function cumulativeData() {
 }
 
 function renderCumulative() {
+  const SITES = VIEW(); // só o setor da aba
   const box = $('#cum-chart');
   box.innerHTML = '';
   document.querySelectorAll('#cum-mode button').forEach((b) => b.classList.toggle('on', b.dataset.mode === state.cumMode));
@@ -894,7 +925,7 @@ function renderCumulative() {
   const sample = (style) => `<svg class="lsample" width="28" height="10" aria-hidden="true"><line x1="1" y1="5" x2="27" y2="5" stroke="currentColor" ${style}/></svg>`;
   const hasModel = D.model && Object.keys(D.model).length > 0;
   const ids = SITES.map((x) => state.gauge[x.id] && state.gauge[x.id].st.id);
-  const sameGauge = state.cumMode === 'dias' && ids[0] && ids.every((v) => v === ids[0]);
+  const sameGauge = SITES.length > 1 && state.cumMode === 'dias' && ids[0] && ids.every((v) => v === ids[0]);
   $('#legend-cum').innerHTML = `
     <span class="lg-group">${SITES.map((x) => `<span style="color:var(${x.color})">${sample('stroke-width="3"')}<b style="color:var(--ink)">${x.name}</b></span>`).join('')}</span>
     <span class="lg-group">
@@ -942,6 +973,7 @@ function selectGauge(id, fly) {
   }
 }
 function renderGaugeMap(byDist) {
+  const SITES = VIEW(); // só o setor da aba
   const el = $('#gauge-map');
   if (!el || typeof L === 'undefined') return;
   if (!gaugeMap) {
@@ -949,7 +981,7 @@ function renderGaugeMap(byDist) {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(gaugeMap);
     L.control.scale({ imperial: false }).addTo(gaugeMap);
     gaugeLayer = L.layerGroup().addTo(gaugeMap);
-    const pts = state.stations.map((st) => [st.lat, st.lon]).concat(SITES.map((x) => [x.lat, x.lon]));
+    const pts = byDist.map(({ st }) => [st.lat, st.lon]).concat(SITES.map((x) => [x.lat, x.lon]));
     gaugeMap.fitBounds(pts, { padding: [24, 24] });
   }
   gaugeLayer.clearLayers();
@@ -986,6 +1018,7 @@ function renderGaugeMap(byDist) {
 }
 
 function renderGauges() {
+  const SITES = VIEW(); // só o setor da aba
   const tableBox = $('#gauge-table');
   const chartBox = $('#gauge-chart');
   if (!state.stations.length) {
@@ -994,8 +1027,15 @@ function renderGauges() {
     return;
   }
   // estação padrão: a usada pelo Iperocks (ou a mais próxima)
-  const byDist = state.stations.map((st) => ({ st, km: SITES.map((x) => distKm(x, st)) })).sort((a, b) => a.km[0] - b.km[0]);
-  if (!state.gaugeSel || !state.stations.some((x) => x.id === state.gaugeSel)) {
+  // só as estações funcionando (paradas ou com defeito ficam de fora)
+  const working = state.stations.filter((st) => gaugeStatus(st).key === 'ok');
+  if (!working.length) {
+    chartBox.innerHTML = '';
+    tableBox.innerHTML = '<p class="note">Nenhum pluviômetro funcionando perto agora.</p>';
+    return;
+  }
+  const byDist = working.map((st) => ({ st, km: SITES.map((x) => distKm(x, st)) })).sort((a, b) => a.km[0] - b.km[0]);
+  if (!state.gaugeSel || !working.some((x) => x.id === state.gaugeSel)) {
     state.gaugeSel = (state.gauge[SITES[0].id] && state.gauge[SITES[0].id].st.id) || byDist[0].st.id;
   }
   const sel = state.stations.find((x) => x.id === state.gaugeSel);
@@ -1126,8 +1166,8 @@ function seqColor(v) {
 }
 
 function renderModels() {
-  const seg = $('#models-site');
-  seg.innerHTML = SITES.map((x) => `<button data-site="${x.id}" class="${x.id === state.modelSite ? 'on' : ''}">${x.name.split(' ')[0]}</button>`).join('');
+  state.modelSite = state.site;
+  $('#models-site').innerHTML = ''; // o setor vem da aba
   const wrap = $('#models-wrap');
   if (!state.models) {
     wrap.innerHTML = '<p class="note">carregando modelos…</p>';
@@ -1169,6 +1209,7 @@ function renderModels() {
 // Tabela
 // ---------------------------------------------------------------------------
 function renderTable() {
+  const SITES = VIEW(); // só o setor da aba
   const todayKey = state.times[state.nowIdx].slice(0, 10);
   const head = `<tr><th>Dia</th>${SITES.map((s) => `<th>${s.name} (mm)</th><th>horas c/ chuva</th>`).join('')}<th>Máx °C</th></tr>`;
   const rows = state.days.slice().reverse().map((d) => {
@@ -1219,6 +1260,7 @@ function renderControls() {
 }
 
 function renderLegend() {
+  const SITES = VIEW(); // só o setor da aba
   $('#legend-daily').innerHTML = SITES.map((s) => `<span><i class="swatch" style="background:var(${s.color})"></i>${s.name}</span>`).join('')
     + '<span class="muted">claro: previsão</span>';
 }
@@ -1236,6 +1278,7 @@ function setTarget(idx, light = false) {
 }
 
 function renderAll() {
+  renderLegend();
   renderControls();
   renderCards();
   renderMap();
@@ -1366,6 +1409,9 @@ function initBrush() {
 }
 
 function init() {
+  state.site = siteFromHash();
+  document.title = `Rochas Secas · ${SITES.find((x) => x.id === state.site).name}`;
+  window.addEventListener('hashchange', () => { setSite(siteFromHash()); window.scrollTo({ top: Math.min(window.scrollY, $('#site-tabs').offsetTop), behavior: 'smooth' }); });
   initTheme();
   if (typeof Scene !== 'undefined') Scene.init();
   initMap();

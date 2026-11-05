@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=League+Gothic&family=Archivo+Black&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="css/style.css?v=202610281747">
-  <link rel="stylesheet" href="css/sertao.css?v=202610281747">
+  <link rel="stylesheet" href="css/style.css?v=202611051734">
+  <link rel="stylesheet" href="css/sertao.css?v=202611051734">
 </head>
 <body>
   <header class="hero">
@@ -58,6 +58,13 @@
           <g class="orbit o1"><g class="bird"><path d="M-9 0 Q -4 -4 0 0 Q 4 -4 9 0"/></g></g>
           <g class="orbit o2"><g class="bird"><path d="M-7 0 Q -3 -3 0 0 Q 3 -3 7 0"/></g></g>
         </g>
+        <!-- serras ao fundo (cena da Flona) -->
+        <g class="mountains">
+          <path class="mtn-far" d="M0 168 L38 146 L72 156 L118 116 L150 134 L196 104 L236 128 L282 96 L322 120 L370 88 L418 118 L456 98 L506 126 L548 104 L600 118 L600 300 L0 300 Z"/>
+          <path class="mtn-hatch" d="M118 116 l-12 14 M118 116 l-4 18 M196 104 l-10 15 M196 104 l-3 19 M282 96 l-11 16 M282 96 l-3 20 M370 88 l-12 17 M370 88 l-4 21 M456 98 l-10 15 M456 98 l-3 19 M548 104 l-10 14"/>
+          <path class="mtn-mid" d="M0 196 L54 166 L98 182 L150 146 L196 172 L250 140 L300 166 L352 136 L404 164 L462 142 L520 168 L568 148 L600 158 L600 300 L0 300 Z"/>
+          <path class="mtn-hatch" d="M150 146 l-9 13 M150 146 l-2 16 M250 140 l-10 14 M250 140 l-2 17 M352 136 l-10 15 M352 136 l-3 18 M462 142 l-9 13 M462 142 l-2 16 M568 148 l-8 12"/>
+        </g>
         <!-- Morro Araçoiaba ao fundo -->
         <path class="hill-far" d="M0 300 L0 194.7 A 17.0 13.6 0 0 1 22.0 190.0 A 11.0 8.8 0 0 1 44.0 184.3 A 13.0 10.4 0 0 1 66.0 177.7 A 17.0 13.6 0 0 1 88.0 170.7 A 11.0 8.8 0 0 1 110.0 163.9 A 13.0 10.4 0 0 1 132.0 157.8 A 17.0 13.6 0 0 1 154.0 153.1 A 11.0 8.8 0 0 1 176.0 150.4 A 13.0 10.4 0 0 1 198.0 150.0 A 17.0 13.6 0 0 1 220.0 151.9 A 11.0 8.8 0 0 1 242.0 155.7 A 13.0 10.4 0 0 1 264.0 160.8 A 17.0 13.6 0 0 1 286.0 166.5 A 11.0 8.8 0 0 1 308.0 172.0 A 13.0 10.4 0 0 1 330.0 176.4 A 17.0 13.6 0 0 1 352.0 179.4 A 11.0 8.8 0 0 1 374.0 180.9 A 13.0 10.4 0 0 1 396.0 181.1 A 17.0 13.6 0 0 1 418.0 180.6 A 11.0 8.8 0 0 1 440.0 180.0 A 13.0 10.4 0 0 1 462.0 180.0 A 17.0 13.6 0 0 1 484.0 181.1 A 11.0 8.8 0 0 1 506.0 183.4 A 13.0 10.4 0 0 1 528.0 186.7 A 17.0 13.6 0 0 1 550.0 190.4 A 11.0 8.8 0 0 1 572.0 194.3 A 13.0 10.4 0 0 1 594.0 197.7 A 17.0 13.6 0 0 1 600.0 198.5 L600 300 Z"/>
         <path class="hill-near" d="M0 300 L0 250.0 A 12.0 9.6 0 0 1 16.0 248.6 A 7.5 6.0 0 0 1 32.0 247.4 A 9.0 7.2 0 0 1 48.0 246.2 A 12.0 9.6 0 0 1 64.0 245.2 A 7.5 6.0 0 0 1 80.0 244.5 A 9.0 7.2 0 0 1 96.0 244.1 A 12.0 9.6 0 0 1 112.0 244.0 A 7.5 6.0 0 0 1 128.0 244.2 A 9.0 7.2 0 0 1 144.0 244.7 A 12.0 9.6 0 0 1 160.0 245.5 A 7.5 6.0 0 0 1 176.0 246.5 A 9.0 7.2 0 0 1 192.0 247.7 A 12.0 9.6 0 0 1 208.0 249.0 A 7.5 6.0 0 0 1 224.0 250.4 A 9.0 7.2 0 0 1 240.0 251.7 A 12.0 9.6 0 0 1 256.0 253.0 A 7.5 6.0 0 0 1 272.0 254.1 A 9.0 7.2 0 0 1 288.0 255.0 A 12.0 9.6 0 0 1 304.0 255.6 A 7.5 6.0 0 0 1 320.0 255.9 A 9.0 7.2 0 0 1 336.0 256.0 A 12.0 9.6 0 0 1 352.0 255.7 A 7.5 6.0 0 0 1 368.0 255.1 A 9.0 7.2 0 0 1 384.0 254.3 A 12.0 9.6 0 0 1 400.0 253.2 A 7.5 6.0 0 0 1 416.0 252.0 A 9.0 7.2 0 0 1 432.0 250.7 A 12.0 9.6 0 0 1 448.0 249.3 A 7.5 6.0 0 0 1 464.0 248.0 A 9.0 7.2 0 0 1 480.0 246.7 A 12.0 9.6 0 0 1 496.0 245.7 A 7.5 6.0 0 0 1 512.0 244.9 A 9.0 7.2 0 0 1 528.0 244.3 A 12.0 9.6 0 0 1 544.0 244.0 A 7.5 6.0 0 0 1 560.0 244.1 A 9.0 7.2 0 0 1 576.0 244.4 A 12.0 9.6 0 0 1 592.0 245.1 A 7.5 6.0 0 0 1 600.0 245.5 L600 300 Z"/>
@@ -67,6 +74,13 @@
           <path class="paineira-trunk" d="M244 250 C 236 210, 254 180, 246 150 C 244 136, 248 128, 247 120 M247 132 C 236 124, 230 114, 226 106 M247 128 C 258 120, 264 110, 268 102"/><circle class="paineira-bloom" cx="226" cy="100" r="8"/><circle class="paineira-bloom" cx="240" cy="94" r="9.5"/><circle class="paineira-bloom" cx="254" cy="92" r="8"/><circle class="paineira-bloom" cx="268" cy="98" r="9.5"/><circle class="paineira-bloom" cx="232" cy="110" r="8"/><circle class="paineira-bloom" cx="248" cy="104" r="9.5"/><circle class="paineira-bloom" cx="262" cy="108" r="8"/><circle class="paineira-bloom" cx="244" cy="84" r="9.5"/><circle class="paineira-bloom" cx="276" cy="108" r="8"/><circle class="paineira-bloom" cx="216" cy="108" r="9.5"/>
           <path class="ipe-trunk" d="M160 282 C 158 250, 162 230, 158 212 M158 228 C 148 218, 142 210, 138 200 M159 220 C 170 212, 178 204, 182 196 M158 212 C 160 200, 156 190, 160 180"/><circle class="ipe-bloom" cx="160" cy="170" r="7.5"/><circle class="ipe-bloom" cx="146" cy="178" r="9"/><circle class="ipe-bloom" cx="174" cy="176" r="7.5"/><circle class="ipe-bloom" cx="134" cy="190" r="9"/><circle class="ipe-bloom" cx="186" cy="190" r="7.5"/><circle class="ipe-bloom" cx="152" cy="186" r="9"/><circle class="ipe-bloom" cx="168" cy="190" r="7.5"/><circle class="ipe-bloom" cx="158" cy="200" r="9"/><circle class="ipe-bloom" cx="140" cy="201" r="7.5"/><circle class="ipe-bloom" cx="178" cy="202" r="9"/><circle class="ipe-bloom" cx="150" cy="166" r="7.5"/><circle class="ipe-bloom" cx="170" cy="163" r="9"/><circle class="ipe-bloom" cx="126" cy="200" r="7.5"/><circle class="ipe-bloom" cx="192" cy="200" r="9"/>
           <path class="embauba-trunk" d="M470 250 V62 M470 150 C 456 140, 452 120, 452 84 M470 130 C 486 122, 490 100, 490 80 M452 150 C 446 140, 440 124, 440 110 M490 140 C 498 130, 500 118, 500 106"/><path class="embauba-leaf" d="M470 62 L 459.7 59.6 M470 62 L 462.0 57.2 M470 62 L 465.5 55.6 M470 62 L 469.8 55.0 M470 62 L 474.1 55.5 M470 62 L 477.8 57.1 M470 62 L 480.2 59.4"/><path class="embauba-leaf" d="M452 84 L 441.7 81.6 M452 84 L 444.0 79.2 M452 84 L 447.5 77.6 M452 84 L 451.8 77.0 M452 84 L 456.1 77.5 M452 84 L 459.8 79.1 M452 84 L 462.2 81.4"/><path class="embauba-leaf" d="M490 80 L 479.7 77.6 M490 80 L 482.0 75.2 M490 80 L 485.5 73.6 M490 80 L 489.8 73.0 M490 80 L 494.1 73.5 M490 80 L 497.8 75.1 M490 80 L 500.2 77.4"/><path class="embauba-leaf" d="M440 110 L 429.7 107.6 M440 110 L 432.0 105.2 M440 110 L 435.5 103.6 M440 110 L 439.8 103.0 M440 110 L 444.1 103.5 M440 110 L 447.8 105.1 M440 110 L 450.2 107.4"/><path class="embauba-leaf" d="M500 106 L 489.7 103.6 M500 106 L 492.0 101.2 M500 106 L 495.5 99.6 M500 106 L 499.8 99.0 M500 106 L 504.1 99.5 M500 106 L 507.8 101.1 M500 106 L 510.2 103.4"/>
+        </g>
+        <!-- maciço da Flona: o paredão é a face de uma montanha de pedra -->
+        <g class="massif">
+          <path class="massif-rock" d="M228 290 C 256 252, 278 214, 298 182 C 314 154, 324 122, 334 92 C 342 66, 348 40, 362 22 C 384 8, 424 2, 470 0 C 520 -2, 556 8, 600 6 L 600 290 Z"/>
+          <path class="massif-shade" d="M506 2 C 530 0, 552 10, 572 6 C 586 4, 596 8, 600 10 L 600 290 L 548 290 C 556 220, 540 150, 552 90 C 558 56, 540 26, 506 2 Z"/>
+          <path class="massif-lines" d="M262 244 C 278 238, 292 240, 304 246 M282 206 C 296 198, 310 200, 322 206 M300 162 C 312 154, 324 156, 334 162 M314 120 C 324 112, 334 114, 342 120 M326 80 C 334 72, 342 74, 350 80 M540 60 C 556 70, 566 92, 562 120 M556 150 C 566 176, 562 206, 570 236"/>
+          <g class="ledge-shrubs"><ellipse cx="276" cy="240" rx="9" ry="4"/><ellipse cx="300" cy="200" rx="8" ry="3.6"/><ellipse cx="316" cy="158" rx="7" ry="3.2"/><ellipse cx="330" cy="116" rx="6" ry="3"/><ellipse cx="570" cy="128" rx="7" ry="3.2"/></g>
         </g>
         <!-- mandacaru e árvore seca em tinta, como na capa -->
         <g class="ink-flora">
@@ -101,19 +115,36 @@
         <rect class="ground" x="0" y="280" width="600" height="20"/>
         <g class="cracks"><path d="M10 291 l14 3 l10 -2 l12 4 M60 296 l9 -3 l14 2 M120 292 l10 4 l16 -1 M206 297 l12 -3 l9 2 M300 293 l16 3 l8 -2 M380 296 l12 -4 l15 3 M450 291 l10 3 l14 -1 l8 3 M520 297 l14 -3 M560 292 l12 3 l10 -2"/></g>
         <!-- crash pads: um sob o teto (saída sentada) e um para a descida -->
-        <rect class="pad" x="244" y="275" width="84" height="10" rx="3"/>
-        <path class="pad-line" d="M286 275 V285"/>
+        <g class="boulder-set">
+          <rect class="pad" x="244" y="275" width="84" height="10" rx="3"/>
+          <path class="pad-line" d="M286 275 V285"/>
+        </g>
         <rect class="pad pad-2" x="117" y="275" width="86" height="10" rx="3"/>
         <path class="pad-line" d="M160 275 V285"/>
-        <!-- bloco Búfalo: corcova e um "focinho" negativo (teto) -->
-        <path class="rock" d="M330 285 C 318 262, 300 245, 270 228 C 245 214, 222 206, 204 198 C 196 194, 194 186, 199 177 C 205 166, 214 158, 224 150 C 244 134, 280 114, 330 108 C 380 102, 430 116, 470 140 C 510 166, 545 222, 560 285 Z"/>
-        <path class="rock-shade" d="M330 285 C 318 262, 300 245, 270 228 C 245 214, 222 206, 204 198 C 214 214, 250 230, 282 252 C 300 264, 312 276, 316 285 Z"/>
-        <path class="rock-shade" d="M470 140 C 510 166, 545 222, 560 285 L 500 285 C 504 236, 492 182, 470 140 Z"/>
-        <path class="strata" d="M232 168 C 300 150, 400 150, 486 168 M262 206 C 340 190, 440 196, 520 214 M320 250 C 380 238, 470 242, 548 254"/>
+        <g class="boulder-set">
+          <!-- bloco Búfalo: corcova e um "focinho" negativo (teto) -->
+          <path class="rock" d="M330 285 C 318 262, 300 245, 270 228 C 245 214, 222 206, 204 198 C 196 194, 194 186, 199 177 C 205 166, 214 158, 224 150 C 244 134, 280 114, 330 108 C 380 102, 430 116, 470 140 C 510 166, 545 222, 560 285 Z"/>
+          <path class="rock-shade" d="M330 285 C 318 262, 300 245, 270 228 C 245 214, 222 206, 204 198 C 214 214, 250 230, 282 252 C 300 264, 312 276, 316 285 Z"/>
+          <path class="rock-shade" d="M470 140 C 510 166, 545 222, 560 285 L 500 285 C 504 236, 492 182, 470 140 Z"/>
+          <path class="strata" d="M232 168 C 300 150, 400 150, 486 168 M262 206 C 340 190, 440 196, 520 214 M320 250 C 380 238, 470 242, 548 254"/>
+        </g>
+        <!-- paredão da Flona (via esportiva): chapeletas, costuras e parada -->
+        <g class="cliff-set">
+          <path class="rock" d="M338 290 C 344 246, 334 206, 342 166 C 350 120, 338 80, 348 40 C 352 22, 362 12, 380 10 C 430 6, 480 8, 512 14 C 524 18, 528 40, 524 80 C 520 140, 532 200, 528 250 C 527 268, 530 280, 532 290 Z"/>
+          <path class="rock-shade" d="M512 14 C 524 18, 528 40, 524 80 C 520 140, 532 200, 528 250 C 527 268, 530 280, 532 290 L 500 290 C 506 230, 494 150, 502 80 C 506 50, 504 28, 512 14 Z"/>
+          <path class="strata" d="M350 70 C 400 62, 460 66, 520 72 M346 140 C 410 132, 470 136, 524 142 M344 210 C 400 202, 470 206, 528 212 M342 262 C 400 256, 470 258, 530 262"/>
+          <g id="bolts"></g>
+          <g class="talus">
+            <path d="M318 290 L 322 278 L 334 274 L 344 280 L 346 290 Z"/>
+            <path d="M296 290 L 300 284 L 310 283 L 314 290 Z"/>
+            <path d="M528 290 L 532 276 L 546 270 L 560 276 L 564 290 Z"/>
+            <path d="M562 290 L 566 282 L 578 281 L 582 290 Z"/>
+          </g>
+        </g>
         <!-- noite: sombra, lua e estrelas (só aparecem quando o horário avaliado é noite) -->
         <rect class="night-shade" x="0" y="0" width="600" height="300"/>
         <g class="night-sky">
-          <g class="stars"><circle cx="315" cy="17" r="1.5" style="animation-delay:-1.95s"/><circle cx="187" cy="42" r="0.8" style="animation-delay:-1.10s"/><circle cx="179" cy="40" r="1" style="animation-delay:-0.11s"/><circle cx="372" cy="34" r="0.8" style="animation-delay:-0.72s"/><circle cx="432" cy="35" r="0.8" style="animation-delay:-2.48s"/><circle cx="213" cy="22" r="0.8" style="animation-delay:-1.73s"/><circle cx="353" cy="11" r="1" style="animation-delay:-0.14s"/><circle cx="589" cy="16" r="1.2" style="animation-delay:-1.26s"/><circle cx="426" cy="15" r="1.2" style="animation-delay:-1.68s"/><circle cx="499" cy="19" r="0.8" style="animation-delay:-1.74s"/><circle cx="477" cy="20" r="1.2" style="animation-delay:-0.29s"/><circle cx="514" cy="12" r="0.8" style="animation-delay:-1.86s"/><circle cx="404" cy="51" r="1.5" style="animation-delay:-2.33s"/><circle cx="388" cy="45" r="1.5" style="animation-delay:-1.08s"/><circle cx="277" cy="58" r="1" style="animation-delay:-2.10s"/><circle cx="274" cy="13" r="1.2" style="animation-delay:-1.58s"/><circle cx="325" cy="54" r="1.5" style="animation-delay:-0.86s"/><circle cx="187" cy="15" r="1.5" style="animation-delay:-0.49s"/><circle cx="325" cy="17" r="1.5" style="animation-delay:-1.27s"/><circle cx="492" cy="12" r="1.2" style="animation-delay:-1.02s"/><circle cx="329" cy="46" r="1.5" style="animation-delay:-1.74s"/><circle cx="383" cy="12" r="0.8" style="animation-delay:-2.83s"/><circle cx="392" cy="52" r="0.8" style="animation-delay:-0.18s"/><circle cx="509" cy="27" r="1.5" style="animation-delay:-0.85s"/><circle cx="347" cy="50" r="1.2" style="animation-delay:-0.07s"/><circle cx="386" cy="30" r="1" style="animation-delay:-1.83s"/><circle cx="402" cy="11" r="1" style="animation-delay:-2.30s"/><circle cx="216" cy="55" r="1" style="animation-delay:-1.19s"/></g>
+          <g class="stars"><circle cx="315" cy="17" r="1.5" style="animation-delay:-1.95s"/><circle cx="187" cy="42" r="0.8" style="animation-delay:-1.10s"/><circle cx="179" cy="40" r="1" style="animation-delay:-0.11s"/><circle class="over-cliff" cx="372" cy="34" r="0.8" style="animation-delay:-0.72s"/><circle class="over-cliff" cx="432" cy="35" r="0.8" style="animation-delay:-2.48s"/><circle cx="213" cy="22" r="0.8" style="animation-delay:-1.73s"/><circle class="over-cliff" cx="353" cy="11" r="1" style="animation-delay:-0.14s"/><circle cx="589" cy="16" r="1.2" style="animation-delay:-1.26s"/><circle class="over-cliff" cx="426" cy="15" r="1.2" style="animation-delay:-1.68s"/><circle class="over-cliff" cx="499" cy="19" r="0.8" style="animation-delay:-1.74s"/><circle class="over-cliff" cx="477" cy="20" r="1.2" style="animation-delay:-0.29s"/><circle class="over-cliff" cx="514" cy="12" r="0.8" style="animation-delay:-1.86s"/><circle class="over-cliff" cx="404" cy="51" r="1.5" style="animation-delay:-2.33s"/><circle class="over-cliff" cx="388" cy="45" r="1.5" style="animation-delay:-1.08s"/><circle cx="277" cy="58" r="1" style="animation-delay:-2.10s"/><circle cx="274" cy="13" r="1.2" style="animation-delay:-1.58s"/><circle cx="325" cy="54" r="1.5" style="animation-delay:-0.86s"/><circle cx="187" cy="15" r="1.5" style="animation-delay:-0.49s"/><circle cx="325" cy="17" r="1.5" style="animation-delay:-1.27s"/><circle class="over-cliff" cx="492" cy="12" r="1.2" style="animation-delay:-1.02s"/><circle cx="329" cy="46" r="1.5" style="animation-delay:-1.74s"/><circle class="over-cliff" cx="383" cy="12" r="0.8" style="animation-delay:-2.83s"/><circle class="over-cliff" cx="392" cy="52" r="0.8" style="animation-delay:-0.18s"/><circle class="over-cliff" cx="509" cy="27" r="1.5" style="animation-delay:-0.85s"/><circle class="over-cliff" cx="347" cy="50" r="1.2" style="animation-delay:-0.07s"/><circle class="over-cliff" cx="386" cy="30" r="1" style="animation-delay:-1.83s"/><circle class="over-cliff" cx="402" cy="11" r="1" style="animation-delay:-2.30s"/><circle cx="216" cy="55" r="1" style="animation-delay:-1.19s"/></g>
           <circle class="moon" cx="110" cy="72" r="22"/>
           <circle class="crater" cx="102" cy="66" r="4"/><circle class="crater" cx="117" cy="80" r="3"/><circle class="crater" cx="116" cy="62" r="2"/>
         </g>
@@ -138,8 +169,24 @@
             </g>
           </g>
         </g>
+        <!-- cadeira de camping: onde o escalador espera a chuva passar -->
+        <g class="camp-chair">
+          <path class="chair-frame" d="M142 285 L 173 259 M172 285 L 143 259"/>
+          <path class="chair-back" d="M137 224 L 147 224 L 151 258 L 141 258 Z"/>
+          <path class="chair-seat" d="M141 258 Q 158 267 176 258"/>
+          <path class="chair-frame" d="M139 243 L 172 245"/>
+          <g class="chair-mug"><rect x="170" y="238" width="7" height="8" rx="1.2"/><path d="M177 240 q 3 1 0 4"/></g>
+        </g>
+        <!-- segunda cadeira, virada para o escalador -->
+        <g class="camp-chair chair-2">
+          <path class="chair-frame" d="M200 285 L 229 259 M229 285 L 200 259"/>
+          <path class="chair-back" d="M235 224 L 225 224 L 221 258 L 231 258 Z"/>
+          <path class="chair-seat" d="M196 258 Q 214 267 231 258"/>
+          <path class="chair-frame" d="M199 245 L 233 243"/>
+        </g>
         <g id="spotters"></g>
         <g id="climber"></g>
+        <g class="rope-set"><path id="rope-tail"/><path id="rope"/><ellipse class="rope-pile" cx="326" cy="284" rx="11" ry="3.2"/></g>
         <g id="beams"></g>
         <g id="scene-puffs"></g>
         <g id="rain"></g>
@@ -149,6 +196,8 @@
   <div class="rope" aria-hidden="true"></div>
 
   <main>
+    <nav id="site-tabs" class="site-tabs" role="tablist" aria-label="Setores"></nav>
+
     <section class="controls board" aria-label="Quando você vai escalar?">
       <div class="ctrl-group">
         <span class="ctrl-label">Quando?</span>
@@ -183,6 +232,28 @@
     <section class="grid">
       <div class="panel board wide">
         <div class="panel-head">
+          <h2 class="tape t-teal">Pluviômetros <span class="unit">chuva medida pelo CEMADEN</span></h2>
+          <div class="legend" id="legend-gauge"></div>
+        </div>
+        <div id="gauge-chart" class="chart" role="img" aria-label="Chuva por dia medida no pluviômetro e estimada pelo modelo"></div>
+        <div class="gauge-grid">
+          <div id="gauge-table" class="table-wrap"></div>
+          <div id="gauge-map" aria-label="Mapa das estações"></div>
+        </div>
+        <p class="hint">Só aparecem as estações funcionando. Clique numa estação (na tabela ou no mapa) para ver onde ela fica e o gráfico dela.</p>
+      </div>
+
+      <div class="panel board wide">
+        <div class="panel-head">
+          <h2 class="tape t-yellow">Modelos <span class="unit">previsão de chuva por dia · mm</span></h2>
+          <div id="models-site" class="seg" role="group" aria-label="Local"></div>
+        </div>
+        <div id="models-wrap" class="table-wrap"></div>
+        <p class="hint">Quando os modelos discordam, a previsão é incerta. CPTEC/INPE: previsão oficial brasileira para Iperó (condição do dia, sem mm).</p>
+      </div>
+
+      <div class="panel board wide">
+        <div class="panel-head">
           <h2 class="tape t-teal">Chuva por dia</h2>
           <div id="range" class="seg" role="group" aria-label="Histórico">
             <button data-days="7">7 dias</button>
@@ -211,28 +282,6 @@
         <div class="legend cum-legend" id="legend-cum"></div>
         <div id="cum-chart" class="chart" role="img" aria-label="Gráfico de chuva acumulada"></div>
         <p class="hint">Clique ou arraste para mudar o horário.</p>
-      </div>
-
-      <div class="panel board wide">
-        <div class="panel-head">
-          <h2 class="tape t-teal">Pluviômetros <span class="unit">chuva medida pelo CEMADEN</span></h2>
-          <div class="legend" id="legend-gauge"></div>
-        </div>
-        <div id="gauge-chart" class="chart" role="img" aria-label="Chuva por dia medida no pluviômetro e estimada pelo modelo"></div>
-        <div class="gauge-grid">
-          <div id="gauge-table" class="table-wrap"></div>
-          <div id="gauge-map" aria-label="Mapa das estações"></div>
-        </div>
-        <p class="hint">Clique numa estação (na tabela ou no mapa) para ver onde ela fica e o gráfico dela.</p>
-      </div>
-
-      <div class="panel board wide">
-        <div class="panel-head">
-          <h2 class="tape t-yellow">Modelos <span class="unit">previsão de chuva por dia · mm</span></h2>
-          <div id="models-site" class="seg" role="group" aria-label="Local"></div>
-        </div>
-        <div id="models-wrap" class="table-wrap"></div>
-        <p class="hint">Quando os modelos discordam, a previsão é incerta. CPTEC/INPE: previsão oficial brasileira para Iperó (condição do dia, sem mm).</p>
       </div>
 
       <div class="panel board wide">
@@ -301,7 +350,7 @@
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="js/scene.js?v=202610281747"></script>
-  <script src="js/app.js?v=202610281747"></script>
+  <script src="js/scene.js?v=202611051734"></script>
+  <script src="js/app.js?v=202611051734"></script>
 </body>
 </html>

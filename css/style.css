@@ -178,7 +178,6 @@ h1 {
 @keyframes ear { 0%, 90%, 100% { transform: rotate(0); } 93% { transform: rotate(-18deg); } 96% { transform: rotate(6deg); } }
 #scene.rainy .dog-tail { animation-duration: 1.4s; }
 @media (prefers-reduced-motion: reduce) { #scene .dog-tail, #scene .dog-body, #scene .dog-ear { animation: none !important; } }
-#scene.rainy #spotters { display: none; } /* na chuva os amigos foram pro carro */
 #climber .coat, #climber .hood, #climber .cookie { display: none; }
 #climber.rainwear .coat, #climber.rainwear .hood, #climber.rainwear .cookie { display: inline; }
 #climber.rainwear .beanie, #climber.rainwear .bag { display: none; }

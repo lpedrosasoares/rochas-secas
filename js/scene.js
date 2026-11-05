@@ -50,7 +50,20 @@ const Scene = (() => {
     standPose(575, -1),
   ];
   const MEET_CLIMBER = 230; // o escalador caminha até a spotter para o soquinho
-  const SIT = pose(P(143, 266), P(177, 266), P(138, 283), P(182, 283), P(160, 248), P(160, 274));
+  const SIT = pose(P(150, 244), P(170, 254), P(177, 284), P(184, 284), P(149, 232), P(154, 257)); // na cadeira de camping
+
+  // ---- Flona: via esportiva no paredão ----
+  const VIA_X = (y) => 420 + 6 * Math.sin(y / 30); // linha da via (leve zigue-zague)
+  const BOLTS = [P(414, 240), P(426, 200), P(416, 160), P(428, 120), P(418, 80)];
+  const ANCHOR = P(424, 40);
+  const BELAY_X = 346; // onde a menina dá segurança
+  const VIA_START = pose(P(410, 236), P(430, 232), P(412, 283), P(428, 283)); // corpo calculado (sem S/H)
+  let sceneType = 'boulder';
+  const boltOn = BOLTS.map(() => false);
+  let anchorOn = false;
+  const draws = [];
+  let rope = null;
+  let ropeTail = null;
 
   let svg, climber, ticks, puffs, parts = {};
   const lamps = {};
@@ -125,6 +138,13 @@ const Scene = (() => {
     parts.shorts.setAttribute('x2', H.x + u.x * 4); parts.shorts.setAttribute('y2', H.y + u.y * 4);
     parts.head.setAttribute('cx', S.x + u.x * 11); parts.head.setAttribute('cy', S.y + u.y * 11);
     parts.beanie.setAttribute('cx', S.x + u.x * 14.5); parts.beanie.setAttribute('cy', S.y + u.y * 14.5);
+    {
+      const hc = P(S.x + u.x * 11, S.y + u.y * 11);
+      const sw = Math.sin(performance.now() / 220) * 2.5;
+      parts.hair.setAttribute('d', `M${(hc.x - 7.8).toFixed(1)} ${(hc.y + 1.5).toFixed(1)} A 7.8 7.8 0 0 1 ${(hc.x + 7.8).toFixed(1)} ${(hc.y + 1.5).toFixed(1)} Z`);
+      parts.tail.setAttribute('d', `M${(hc.x - 2).toFixed(1)} ${(hc.y - 5).toFixed(1)} C ${(hc.x + 6).toFixed(1)} ${(hc.y - 2).toFixed(1)}, ${(hc.x + 5 + sw).toFixed(1)} ${(hc.y + 8).toFixed(1)}, ${(hc.x + 2 + sw).toFixed(1)} ${(hc.y + 15).toFixed(1)} C ${hc.x.toFixed(1)} ${(hc.y + 8).toFixed(1)}, ${(hc.x - 1).toFixed(1)} ${(hc.y + 2).toFixed(1)}, ${(hc.x - 2).toFixed(1)} ${(hc.y - 1).toFixed(1)} Z`);
+      parts.band.setAttribute('cx', (hc.x + 1).toFixed(1)); parts.band.setAttribute('cy', (hc.y - 3).toFixed(1));
+    }
     const head = P(S.x + u.x * 11, S.y + u.y * 11);
     const hands = mid(p.LH, p.RH);
     const toHands = P(hands.x - head.x, hands.y - head.y);
@@ -170,12 +190,16 @@ const Scene = (() => {
     parts.shoeR = buildShoe(g);
     parts.bag = el('circle', { r: 4.2, fill: '#f5c400', stroke: '#17140f', 'stroke-width': 1.2 }, g);
     parts.shorts = el('line', { stroke: '#155e75', 'stroke-width': 13.5, 'stroke-linecap': 'round' }, g);
-    parts.torso = el('line', { stroke: '#e2457a', 'stroke-width': 13, 'stroke-linecap': 'round' }, g);
+    parts.torso = el('line', { class: 'c-torso', stroke: '#e2457a', 'stroke-width': 13, 'stroke-linecap': 'round' }, g);
     parts.coat = el('polygon', { class: 'coat', fill: '#f5c400', stroke: '#17140f', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }, g);
     parts.la = el('polyline', { ...limb, stroke: '#c98d55', class: 'arm' }, g);
     parts.hood = el('circle', { class: 'hood', r: 10.5, fill: '#f5c400', stroke: '#17140f', 'stroke-width': 1.2 }, g);
     parts.head = el('circle', { r: 7.4, fill: '#c98d55', stroke: '#17140f', 'stroke-width': 1.2 }, g);
-    parts.beanie = el('circle', { r: 5.2, fill: '#17140f' }, g);
+    parts.beanie = el('circle', { class: 'c-beanie', r: 5.2, fill: '#17140f' }, g);
+    // cabelo com rabo de cavalo: aparece quando quem escala é ela (via da Flona)
+    parts.hair = el('path', { class: 'c-hair', fill: '#3b2412', stroke: '#17140f', 'stroke-width': 1 }, g);
+    parts.tail = el('path', { class: 'c-hair', fill: '#3b2412', stroke: '#17140f', 'stroke-width': 1 }, g);
+    parts.band = el('circle', { class: 'c-hair', r: 1.8, fill: '#e2457a' }, g);
     parts.ra = el('polyline', { ...limb, stroke: '#c98d55', class: 'arm' }, g);
     parts.fist = el('circle', { r: 3.6, fill: '#c98d55', stroke: '#17140f', 'stroke-width': 1.1, style: 'display:none' }, g);
     // biscoito com gotas de chocolate; as mordidas são recortes de uma máscara
@@ -212,14 +236,19 @@ const Scene = (() => {
       const limb = { fill: 'none', 'stroke-width': 5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
       sp.ll = el('polyline', { ...limb, stroke: sp.pants, 'stroke-width': 5.8 }, f);
       sp.rl = el('polyline', { ...limb, stroke: sp.pants, 'stroke-width': 5.8 }, f);
-      sp.torso = el('line', { stroke: sp.shirt, 'stroke-width': 13, 'stroke-linecap': 'round' }, f);
+      sp.torso = el('line', { class: 'sp-torso', stroke: sp.shirt, 'stroke-width': 13, 'stroke-linecap': 'round' }, f);
+      sp.coat = el('polygon', { class: 'sp-coat', fill: '#2a78d6', stroke: '#17140f', 'stroke-width': 1.2, 'stroke-linejoin': 'round', style: 'display:none' }, f);
       sp.la = el('polyline', { ...limb, stroke: sp.skin }, f);
       sp.ra = el('polyline', { ...limb, stroke: sp.skin }, f);
+      sp.hood = el('circle', { class: 'sp-hood', r: 10.5, fill: '#2a78d6', stroke: '#17140f', 'stroke-width': 1.2, style: 'display:none' }, f);
       sp.head = el('circle', { r: 7.4, fill: sp.skin, stroke: '#17140f', 'stroke-width': 1.2 }, f);
-      sp.tail = el('path', { fill: sp.hair, stroke: '#17140f', 'stroke-width': 1 }, f);
-      sp.hairEl = el('path', { fill: sp.hair, stroke: '#17140f', 'stroke-width': 1 }, f);
-      sp.band = el('circle', { r: 1.8, fill: '#e2457a' }, f);
+      sp.tail = el('path', { class: 'sp-hair', fill: sp.hair, stroke: '#17140f', 'stroke-width': 1 }, f);
+      sp.hairEl = el('path', { class: 'sp-hair', fill: sp.hair, stroke: '#17140f', 'stroke-width': 1 }, f);
+      sp.band = el('circle', { class: 'sp-hair', r: 1.8, fill: '#e2457a' }, f);
+      sp.beanie = el('circle', { class: 'sp-beanie', r: 5.2, fill: '#17140f' }, f);
       sp.fistEl = el('circle', { r: 3.6, fill: sp.skin, stroke: '#17140f', 'stroke-width': 1.1, style: 'display:none' }, f);
+      // na chuva: caneca de café
+      sp.mug = el('rect', { class: 'sp-mug', width: 6, height: 7, rx: 1.2, style: 'display:none' }, f);
       sp.x = sp.min + (sp.max - sp.min) / 2;
       sp.face = 1;
     });
@@ -233,14 +262,64 @@ const Scene = (() => {
     cheer: { crouch: 0, spread: 8, lean: 1 },
     relax: { crouch: 0, spread: 7, lean: 1 },
     bump: { crouch: 1, spread: 8, lean: 3 },
+    belay: { crouch: 3, spread: 12, lean: 2 },   // dando segurança com a corda
+    lower: { crouch: 7, spread: 14, lean: -3 },  // descendo o escalador: inclinada para trás
   };
   const approach = (cur, want, k) => cur + (want - cur) * k;
+  const RAIN_SEAT_X = 214;
+  function drawRainSpotter(sp, i, now) {
+    const pts = (arr) => arr.map((q) => `${q.x.toFixed(1)},${q.y.toFixed(1)}`).join(' ');
+    sp.x = RAIN_SEAT_X; sp.v = 0;
+    const br = Math.sin(now / 650 + 1) * 1;
+    const H = P(sp.x, 257);
+    const S = P(sp.x + 3, 232 + br);
+    const LF = P(sp.x - 23, 284);
+    const RF = P(sp.x - 16, 284);
+    // gole de café de tempos em tempos (fora de fase com o biscoito dele)
+    const ph = ((now + 1500) % 3800) / 3800;
+    const k = ph < 0.3 ? 0 : ph < 0.45 ? ease((ph - 0.3) / 0.15) : ph < 0.62 ? 1 : ph < 0.78 ? 1 - ease((ph - 0.62) / 0.16) : 0;
+    const hx = S.x - 1;
+    const hy = S.y - 11;
+    const LH = lerpP(P(sp.x - 9, 252), P(hx - 7, hy + 4), k);
+    const RH = P(sp.x + 7, 245); // mão no braço da cadeira
+    sp.ll.setAttribute('points', pts(ik(P(H.x - 2, H.y), LF, LEG, 1)));
+    sp.rl.setAttribute('points', pts(ik(P(H.x + 2, H.y), RF, LEG, 1)));
+    sp.torso.setAttribute('x1', H.x); sp.torso.setAttribute('y1', H.y);
+    sp.torso.setAttribute('x2', S.x); sp.torso.setAttribute('y2', S.y);
+    sp.la.setAttribute('points', pts(ik(P(S.x - 2, S.y), LH, ARM, -1)));
+    sp.ra.setAttribute('points', pts(ik(P(S.x + 2, S.y), RH, ARM, 1)));
+    sp.head.setAttribute('cx', hx); sp.head.setAttribute('cy', hy);
+    // cabelo e rabo de cavalo espelhados (ela olha para a esquerda)
+    sp.hairEl.setAttribute('d', `M${hx + 7.8} ${hy + 1} A 7.8 7.8 0 0 0 ${hx - 7.8} ${hy - 1} L ${hx - 3} ${hy - 2} Z`);
+    const tw = Math.sin(now / 300 + i) * 2;
+    const bx = hx + 7;
+    const by = hy - 3;
+    sp.tail.setAttribute('d', `M${bx} ${by} C ${bx + 8} ${by + 1}, ${bx + 10 - tw} ${by + 9}, ${bx + 6 - tw} ${by + 16} C ${bx + 3} ${by + 9}, ${bx + 1} ${by + 4}, ${bx - 1} ${by + 2} Z`);
+    sp.band.setAttribute('cx', bx + 0.5); sp.band.setAttribute('cy', by + 0.5);
+    sp.fistEl.style.display = 'none';
+    // capa de chuva com capuz (cobre cabelo/gorro)
+    const u = norm(P(S.x - H.x, S.y - H.y));
+    const n = P(-u.y, u.x);
+    const cp = (q, kk, w) => `${(q.x + n.x * w + u.x * kk).toFixed(1)},${(q.y + n.y * w + u.y * kk).toFixed(1)}`;
+    sp.coat.setAttribute('points', [cp(S, 2, 8), cp(S, 2, -8), cp(H, -9, -12), cp(H, -9, 12)].join(' '));
+    sp.coat.style.display = 'inline';
+    sp.hood.setAttribute('cx', hx); sp.hood.setAttribute('cy', hy - 0.5);
+    sp.hood.style.display = 'inline';
+    [sp.tail, sp.hairEl, sp.band, sp.beanie].forEach((e) => { e.style.display = 'none'; });
+    sp.mug.style.display = 'inline';
+    sp.mug.setAttribute('x', (LH.x - 3).toFixed(1)); sp.mug.setAttribute('y', (LH.y - 6).toFixed(1));
+    setLamp(`spotter${i}`, P(hx, hy), P(-1, 0.45), 110); // aponta para baixo para não ofuscar o amigo
+    sp.shoulder = S;
+  }
   function updateSpotters(target, now, opts = {}) {
     const pts = (arr) => arr.map((q) => `${q.x.toFixed(1)},${q.y.toFixed(1)}`).join(' ');
     const mode = opts.mode || 'spot';
     SPOTTERS.forEach((sp, i) => {
+      if (mode === 'rain') { drawRainSpotter(sp, i, now); return; }
+      if (sp.coat) { sp.coat.style.display = 'none'; sp.hood.style.display = 'none'; sp.mug.style.display = 'none'; [sp.tail, sp.hairEl, sp.band, sp.beanie].forEach((e) => { e.style.display = ''; }); }
       // deslocamento com aceleração e freio
-      const want = mode === 'spot' ? Math.max(sp.min, Math.min(sp.max, target.x + sp.offset)) : sp.x;
+      const roped = mode === 'belay' || mode === 'lower';
+      const want = roped ? BELAY_X : mode === 'spot' ? Math.max(sp.min, Math.min(sp.max, target.x + sp.offset)) : sp.x;
       sp.v = (sp.v || 0) * 0.86 + (want - sp.x) * 0.012;
       sp.v = Math.max(-1.3, Math.min(1.3, sp.v));
       sp.x += sp.v;
@@ -253,7 +332,7 @@ const Scene = (() => {
       for (const k of ['crouch', 'spread', 'lean']) sp[k] = approach(sp[k] ?? st[k], st[k], 0.07);
       const sway = mode === 'relax' ? Math.sin(now / 900 + i) * 1.6 : Math.sin(now / 1400 + i) * 0.6;
       const hop = mode === 'cheer' ? Math.abs(Math.sin(now / 170)) * 5 : 0;
-      const roof = Math.max(245, Math.min(272, roofY(sp.x + 6) + 54));
+      const roof = sceneType === 'via' ? 245 : Math.max(245, Math.min(272, roofY(sp.x + 6) + 54));
       const H = P(sp.x + sway, roof + sp.crouch + Math.abs(sw) - hop);
       const S = P(H.x + sp.lean, H.y - 26 + sp.crouch * 0.3);
       const LF = P(sp.x - sp.spread * 0.6 + sw * 8, 283 - hop - (walking ? Math.max(0, Math.cos(sp.phase)) * 3 : 0));
@@ -269,6 +348,18 @@ const Scene = (() => {
       } else if (mode === 'bump') {
         LH = P(H.x - 6, H.y - 1); // mão na cintura
         RH = lerpP(P(S.x + 4, S.y + 26), opts.fist, opts.reach);
+      } else if (roped) {
+        // aparelho na cadeirinha; mão-guia na corda que sobe, mão do freio embaixo
+        const D = P(H.x + 5, H.y - 1);
+        const first = BOLTS.findIndex((_, b) => boltOn[b]);
+        const up = first >= 0 ? P(BOLTS[first].x, BOLTS[first].y + 9) : anchorOn ? ANCHOR : target;
+        const dr = norm(P(up.x - D.x, up.y - D.y));
+        const pull = mode === 'belay' ? Math.sin(now / 450) * 3 : 0;
+        LH = P(D.x + dr.x * (16 + pull), D.y + dr.y * (16 + pull));
+        RH = mode === 'lower' ? P(D.x - 3 + Math.sin(now / 260) * 2.5, D.y + 13) : P(H.x + 2, H.y + 13 + pull * 0.6);
+        sp.device = D;
+        const toC = norm(P(target.x - S.x, target.y - S.y));
+        sp.dir = sp.dir ? norm(lerpP(sp.dir, toC, 0.08)) : toC;
       } else if (mode === 'relax') {
         LH = P(S.x - 3, S.y + 27);
         RH = P(H.x + 7, H.y - 2); // mão na cintura
@@ -293,11 +384,12 @@ const Scene = (() => {
       sp.la.setAttribute('points', pts(ik(P(S.x - 2, S.y), sp.LHs, ARM, 1)));
       sp.ra.setAttribute('points', pts(ik(P(S.x + 2, S.y), sp.RHs, ARM, 1)));
       // cabeça olha para o escalador
-      const look = mode === 'spot' && sp.dir ? sp.dir : P(1, -0.1);
+      const look = (mode === 'spot' || roped) && sp.dir ? sp.dir : P(1, -0.1);
       const hx = S.x + 1 + look.x * 1.5;
       const hyy = S.y - 11 + look.y * 1.2;
       sp.head.setAttribute('cx', hx); sp.head.setAttribute('cy', hyy);
-      setLamp(`spotter${i}`, P(hx, hyy), mode === 'spot' ? look : mode === 'cheer' ? P(0.6, -1) : P(1, 0.15), 110);
+      sp.beanie.setAttribute('cx', hx); sp.beanie.setAttribute('cy', hyy - 3.5);
+      setLamp(`spotter${i}`, P(hx, hyy), mode === 'spot' || roped ? look : mode === 'cheer' ? P(0.6, -1) : P(1, 0.15), roped ? 150 : 110);
       sp.hairEl.setAttribute('d', `M${hx - 7.8} ${hyy + 1} A 7.8 7.8 0 0 1 ${hx + 7.8} ${hyy - 1} L ${hx + 3} ${hyy - 2} Z`);
       const tw = Math.sin(now / (walking || hop ? 140 : 300) + i) * 3;
       const bx = hx - 7;
@@ -352,6 +444,48 @@ const Scene = (() => {
     L.strap.setAttribute('d', `M${(head.x + n.x * 7.2 - d.x).toFixed(1)} ${(head.y + n.y * 7.2 - d.y - 1.5).toFixed(1)} Q ${(head.x + d.x * 8).toFixed(1)} ${(head.y + d.y * 8 - 1.5).toFixed(1)} ${(head.x - n.x * 7.2 - d.x).toFixed(1)} ${(head.y - n.y * 7.2 - d.y - 1.5).toFixed(1)}`);
   }
 
+  // ---- costuras e corda (via) ----
+  function buildBolts() {
+    const g = svg.querySelector('#bolts');
+    if (!g) return;
+    BOLTS.forEach((b) => {
+      el('circle', { class: 'hanger', cx: b.x, cy: b.y, r: 2.2 }, g);
+      const d = el('g', { class: 'draw' }, g); // a costura só aparece quando o escalador costura
+      el('path', { class: 'draw-sling', d: `M${b.x} ${b.y + 1.5} V ${b.y + 8}` }, d);
+      el('ellipse', { class: 'draw-biner', cx: b.x, cy: b.y + 9.5, rx: 1.9, ry: 2.8 }, d);
+      draws.push(d);
+    });
+    // parada: duas chapeletas, correntes e argola
+    [-6, 6].forEach((dx) => el('circle', { class: 'hanger', cx: ANCHOR.x + dx, cy: ANCHOR.y, r: 2.4 }, g));
+    el('path', { class: 'chain', d: `M${ANCHOR.x - 6} ${ANCHOR.y + 2} L ${ANCHOR.x} ${ANCHOR.y + 10} M${ANCHOR.x + 6} ${ANCHOR.y + 2} L ${ANCHOR.x} ${ANCHOR.y + 10}` }, g);
+    el('circle', { class: 'ring', cx: ANCHOR.x, cy: ANCHOR.y + 12, r: 2.6 }, g);
+    rope = svg.querySelector('#rope');
+    ropeTail = svg.querySelector('#rope-tail');
+  }
+  function clipBolt(i) {
+    if (i === 'anchor') { anchorOn = true; return; }
+    boltOn[i] = true;
+    if (draws[i]) draws[i].classList.add('on');
+  }
+  function unclipAll() {
+    boltOn.fill(false);
+    anchorOn = false;
+    draws.forEach((d) => d.classList.remove('on'));
+  }
+  // corda: segurança → costuras mosqueteadas → (parada) → cadeirinha do escalador
+  function drawRope(hip, untied) {
+    const sp = SPOTTERS[0];
+    if (!rope || !sp.device) return;
+    if (untied) { rope.setAttribute('d', ''); ropeTail.setAttribute('d', ''); return; } // desamarrou: corda recolhida
+    const pts = [sp.device];
+    BOLTS.forEach((b, i) => { if (boltOn[i]) pts.push(P(b.x, b.y + 9.5)); });
+    if (anchorOn) pts.push(P(ANCHOR.x, ANCHOR.y + 12));
+    pts.push(P(hip.x + 1, hip.y + 2));
+    rope.setAttribute('d', 'M' + pts.map((q) => `${q.x.toFixed(1)},${q.y.toFixed(1)}`).join(' L'));
+    const d = sp.device;
+    ropeTail.setAttribute('d', `M${d.x.toFixed(1)},${d.y.toFixed(1)} Q ${(d.x - 6).toFixed(1)},${(d.y + 24).toFixed(1)} ${BELAY_X - 20},283`);
+  }
+
   // ---- magnésio ----
   function chalkTick(q) {
     el('ellipse', { cx: q.x + (Math.random() * 4 - 2), cy: q.y + 1, rx: 6, ry: 3.4, class: 'tick' }, ticks);
@@ -391,8 +525,75 @@ const Scene = (() => {
     return t;
   }
 
+  // Via: sobe movendo um membro por vez, costura cada chapeleta na altura do peito,
+  // costura a parada, comemora e desce com a segurança dando corda.
+  function buildViaTimeline() {
+    const t = [];
+    const cur = { ...VIA_START };
+    t.push({ to: { ...cur }, dur: 600, fade: 'in', reset: true, spot: 'belay' });
+    t.push({ to: { ...cur }, dur: 600, spot: 'belay' });
+    const order = ['RH', 'LF', 'LH', 'RF'];
+    const minHand = () => Math.min(cur.LH.y, cur.RH.y);
+    const clipped = BOLTS.map(() => false);
+    let k = 0;
+    for (let guard = 0; minHand() > 60 && guard < 120; guard++) {
+      const limb = order[k++ % 4];
+      const hand = limb[1] === 'H';
+      const side = limb[0] === 'L' ? -1 : 1;
+      let y;
+      if (hand) y = Math.max(54, minHand() - 22);
+      else y = Math.max(Math.min(cur.LF.y, cur.RF.y) - 20, minHand() + 56);
+      if (y >= cur[limb].y - 2) continue; // esse pé ainda não tem para onde subir
+      const next = { ...cur, [limb]: P(VIA_X(y) + side * (hand ? 10 : 8), y) };
+      t.push({ to: next, dur: hand ? 640 : 540, moved: [limb], spot: 'belay' });
+      t.push({ to: next, dur: 180, spot: 'belay' });
+      Object.assign(cur, next);
+      if (!hand) continue;
+      // costura as chapeletas que chegaram à altura do peito/cabeça
+      const body = bodyOf(cur);
+      BOLTS.forEach((b, i) => {
+        if (clipped[i] || b.y < body.S.y - 18) return;
+        clipped[i] = true;
+        const h = b.x < body.S.x ? 'LH' : 'RH';
+        const reach = { ...cur, [h]: P(b.x, b.y + 8) };
+        t.push({ to: reach, dur: 460, moved: [h], noTick: true, spot: 'belay' });
+        t.push({ to: reach, dur: 420, clip: i, spot: 'belay' });
+        t.push({ to: { ...cur }, dur: 420, moved: [h], noTick: true, spot: 'belay' });
+      });
+    }
+    // parada
+    const top = { ...cur, LH: P(ANCHOR.x - 7, ANCHOR.y + 10), RH: P(ANCHOR.x + 7, ANCHOR.y + 10) };
+    t.push({ to: top, dur: 700, moved: ['LH', 'RH'], noTick: true, spot: 'belay' });
+    t.push({ to: top, dur: 500, clip: 'anchor', spot: 'belay' });
+    t.push({ to: top, dur: 1500, cheer: true, spot: 'belay' });
+    // descida: sentado na cadeirinha, pés na parede, mãos na corda
+    const startH = bodyOf(top).H.y;
+    const steps = Math.ceil((262 - startH) / 20);
+    for (let j = 1; j <= steps; j++) {
+      const hy = Math.min(262, startH + j * 20);
+      const hx = VIA_X(hy) - 6;
+      const fy = Math.min(283, hy + 24);
+      const lowerPose = pose(
+        P(hx - 1, hy - 32), P(hx + 2, hy - 24),
+        P(VIA_X(fy) - 9, fy + (j % 2 ? 4 : -3)), P(VIA_X(fy) + 9, Math.min(283, fy + (j % 2 ? -3 : 4))),
+        P(hx - 4, hy - 25), P(hx, hy), { face: 1 });
+      t.push({ to: lowerPose, dur: 520, lower: true, spot: 'lower', moved: [j % 2 ? 'LF' : 'RF'], noTick: true });
+    }
+    t.push({ to: standPose(408, -1), dur: 800, lower: true, spot: 'lower' });
+    t.push({ to: standPose(408, -1), dur: 700, lower: true, spot: 'belay' });
+    // desamarra, caminha até quem deu segurança e os dois se cumprimentam
+    const MEET = BELAY_X + 40;
+    t.push({ to: standPose(408, -1), dur: 500, untie: true, spot: 'relax' });
+    t.push({ to: standPose(MEET, -1), dur: 1300, untie: true, spot: 'relax', walk: [408, MEET] });
+    t.push({ to: standPose(MEET, -1), dur: 1500, untie: true, spot: 'bump', bump: true, bumpX: MEET });
+    t.push({ to: standPose(MEET, -1), dur: 600, untie: true, spot: 'relax' });
+    t.push({ to: standPose(MEET, -1), dur: 500, untie: true, spot: 'relax', fade: 'out' });
+    return t;
+  }
+
   function resetWall() {
     ticks.textContent = '';
+    unclipAll();
   }
 
   function frame(now) {
@@ -422,9 +623,9 @@ const Scene = (() => {
     if (s.bump) {
       // estende o braço, encosta (com nuvem de magnésio) e recolhe
       reach = k < 0.35 ? ease(k / 0.35) : k < 0.62 ? 1 : 1 - ease((k - 0.62) / 0.38);
-      const sp = SPOTTERS[0].shoulder || P(MEET_CLIMBER - 40, 220);
+      const sp = SPOTTERS[0].shoulder || P((s.bumpX ?? MEET_CLIMBER) - 40, 220);
       fist = P((sp.x + p.S.x) / 2, 233);
-      p.RH = lerpP(P(MEET_CLIMBER - 6, 247), fist, reach);
+      p.RH = lerpP(P((s.bumpX ?? MEET_CLIMBER) - 6, 247), fist, reach);
       p.fist = reach > 0.05;
       if (!s.bumped && k >= 0.35) { s.bumped = true; chalkPuff(fist, 7); }
     }
@@ -436,35 +637,38 @@ const Scene = (() => {
     if (s.fade === 'out') climber.style.opacity = 1 - k;
     draw(p);
     let spotMode = s.spot || 'spot';
-    if (s.cheer || (spotMode === 'cheerSoon' && k > 0.7)) spotMode = 'cheer';
+    if (sceneType === 'via') { if (!s.untie && spotMode !== 'lower') spotMode = 'belay'; } // amarrado: quem dá segurança não solta a corda
+    else if (s.cheer || (spotMode === 'cheerSoon' && k > 0.7)) spotMode = 'cheer';
     else if (spotMode === 'cheerSoon') spotMode = 'spot';
     updateSpotters(p.H, now, { mode: spotMode, fist, reach });
+    if (sceneType === 'via') drawRope(p.H, !!s.untie);
 
     if (k >= 1) {
       s.bumped = false;
+      if (s.clip != null) clipBolt(s.clip);
       if (s.moved && !s.noTick) for (const key of s.moved) if (key === 'LH' || key === 'RH') { chalkTick(s.to[key]); chalkPuff(s.to[key], 3); }
       seg = (seg + 1) % timeline.length;
       segStart = now;
       const nx = timeline[seg];
       nx.from = { ...s.to };
       if (nx.cheer) dogFlip();
-      if (nx.reset) { resetWall(); nx.from = { ...START }; }
+      if (nx.reset) { resetWall(); nx.from = { ...(sceneType === 'via' ? VIA_START : START) }; }
     }
     raf = requestAnimationFrame(frame);
   }
 
   function startClimb() {
     cancelAnimationFrame(raf);
-    timeline = buildTimeline();
+    timeline = sceneType === 'via' ? buildViaTimeline() : buildTimeline();
     seg = 0;
     segStart = 0;
-    timeline[0].from = { ...START };
+    timeline[0].from = { ...(sceneType === 'via' ? VIA_START : START) };
     resetWall();
     raf = requestAnimationFrame(frame);
   }
 
   // Sentado no crash pad, de capa, comendo biscoito enquanto a chuva passa
-  const MOUTH = P(166, 238);
+  const MOUTH = P(155, 226);
   let bites = 0;
   let lastPhase = 0;
   function crumbs(q, n = 4) {
@@ -498,6 +702,7 @@ const Scene = (() => {
     p.LH = P(SIT.LH.x, SIT.LH.y + b * 0.5);
     p.RH = lerpP(knee, MOUTH, k);
     draw(p);
+    updateSpotters(p.H, now, { mode: 'rain' });
     raf = requestAnimationFrame(sitLoop);
   }
 
@@ -526,6 +731,7 @@ const Scene = (() => {
     buildClimber(climber);
     buildLamp('climber');
     SPOTTERS.forEach((_, i) => buildLamp(`spotter${i}`));
+    buildBolts();
 
     // chuva
     const rain = svg.querySelector('#rain');
@@ -545,5 +751,19 @@ const Scene = (() => {
 
   function setNight(on) { if (svg) svg.classList.toggle('night', !!on); }
 
-  return { init, setWeather, setNight };
+  // 'boulder' (Iperocks) ou 'via' (Flona)
+  function setScene(type) {
+    if (!svg || type === sceneType) return;
+    sceneType = type;
+    svg.classList.toggle('via', type === 'via');
+    climber.classList.toggle('as-her', type === 'via');
+    svg.querySelector('#spotters').classList.toggle('as-him', type === 'via');
+    if (type === 'via') { SPOTTERS[0].x = BELAY_X; SPOTTERS[0].v = 0; }
+    else { const sp = SPOTTERS[0]; sp.x = sp.min + (sp.max - sp.min) / 2; sp.v = 0; }
+    if (mode === 'rain' || reduceMotion) { resetWall(); return; }
+    climber.style.opacity = 1;
+    startClimb();
+  }
+
+  return { init, setWeather, setNight, setScene };
 })();

@@ -369,5 +369,87 @@ table.gauges td:first-child { white-space: normal; min-width: 130px; }
 #scene.night { --sky-1: #070d24; --sky-2: #2b2448; }
 #scene.night.rainy { --sky-1: #05070f; --sky-2: #1c1d26; }
 #scene.night .sky-hatch { opacity: 0.4; }
-/* na chuva a spotter não está na cena: a lanterna dela também some */
-#scene.rainy .lampset-spotter { display: none; }
+
+/* abas dos setores: grudam no topo ao rolar */
+.site-tabs {
+  position: sticky; top: 0; z-index: 20;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  margin: -6px 0 0; border: 2px solid var(--ink); background: var(--surface);
+  box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.5);
+}
+.site-tabs .tab {
+  display: flex; align-items: center; gap: 10px; justify-content: center;
+  padding: 10px 14px; text-decoration: none; color: var(--ink);
+  border-bottom: 5px solid transparent; transition: background 0.15s;
+}
+.site-tabs .tab + .tab { border-left: 2px solid var(--ink); }
+.site-tabs .tab:hover { background: var(--wash); }
+.site-tabs .tab.on { background: var(--ink); color: var(--surface); border-bottom-color: var(--site); }
+.site-tabs .tab.on .pill { color: var(--surface); }
+.site-tabs .tab-name { font: 400 26px/1 var(--display); letter-spacing: 0.03em; text-transform: uppercase; }
+.site-tabs .swatch { width: 14px; height: 14px; }
+@media (max-width: 520px) { .site-tabs .tab { flex-wrap: wrap; gap: 4px 8px; padding: 8px; } .site-tabs .tab-name { font-size: 20px; } }
+.hero-chip { text-decoration: none; color: var(--ink); cursor: pointer; }
+.hero-chip.on { background: var(--ink); color: var(--surface); }
+.hero-chip.on .pill { color: var(--surface); }
+
+/* cena da Flona: paredão com via esportiva (no lugar do boulder) */
+#scene .cliff-set, #scene .rope-set { display: none; }
+#scene.via .cliff-set, #scene.via .rope-set { display: inline; }
+#scene.via .boulder-set { display: none; }
+#scene .hanger { fill: #9a9a96; stroke: #1a0d08; stroke-width: 0.8; }
+#scene .draw { display: none; }
+#scene .draw.on { display: inline; }
+#scene .draw-sling { stroke: #1fb5a8; stroke-width: 2.4; stroke-linecap: round; }
+#scene .draw-biner { fill: none; stroke: #d8d8d4; stroke-width: 1.4; }
+#scene .chain { fill: none; stroke: #8a8a86; stroke-width: 1.3; stroke-dasharray: 1.6 1; }
+#scene .ring { fill: none; stroke: #c9c9c4; stroke-width: 1.5; }
+#scene #rope { fill: none; stroke: #e2457a; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+#scene #rope-tail { fill: none; stroke: #e2457a; stroke-width: 1.8; stroke-linecap: round; }
+#scene .rope-pile { fill: #e2457a; stroke: #1a0d08; stroke-width: 0.8; }
+#scene.rainy .rope-set { display: none; }
+#scene.via .stars .over-cliff { display: none; } /* sem estrelas por cima do paredão */
+
+/* serras ao fundo na cena da Flona */
+#scene .mountains { display: none; }
+#scene.via .mountains { display: inline; }
+#scene .mtn-far { fill: #dd9563; stroke: #1a0d08; stroke-width: 1; stroke-linejoin: round; }
+#scene .mtn-mid { fill: #b9643a; stroke: #1a0d08; stroke-width: 1.2; stroke-linejoin: round; }
+#scene .mtn-hatch { fill: none; stroke: rgba(60, 18, 4, 0.4); stroke-width: 1; stroke-linecap: round; }
+#scene.rainy .mtn-far { fill: #8a6656; }
+#scene.rainy .mtn-mid { fill: #6e4a38; }
+
+/* maciço da Flona (só na via) */
+#scene .massif { display: none; }
+#scene.via .massif { display: inline; }
+#scene .massif-rock { fill: #c98351; stroke: #1a0d08; stroke-width: 1.4; stroke-linejoin: round; }
+#scene .massif-shade { fill: #a3602f; }
+#scene .massif-lines { fill: none; stroke: rgba(70, 25, 5, 0.45); stroke-width: 1.2; stroke-linecap: round; }
+#scene.rainy .massif-rock { fill: #8a5c3c; }
+#scene.rainy .massif-shade { fill: #6c4428; }
+#scene .talus path { fill: #d79a63; stroke: #1a0d08; stroke-width: 1.1; stroke-linejoin: round; }
+#scene.rainy .talus path { fill: #9c6a44; }
+
+/* cadeira de camping (na chuva) */
+#scene .camp-chair { display: none; }
+#scene.rainy .camp-chair { display: inline; }
+#scene .chair-frame { fill: none; stroke: #2b2b2b; stroke-width: 2.2; stroke-linecap: round; }
+#scene .chair-back { fill: #2f7d4f; stroke: #1a0d08; stroke-width: 1.1; stroke-linejoin: round; }
+#scene .chair-seat { fill: none; stroke: #2f7d4f; stroke-width: 4.5; stroke-linecap: round; }
+#scene .chair-mug rect { fill: #f2efe6; stroke: #1a0d08; stroke-width: 1; }
+#scene .chair-mug path { fill: none; stroke: #1a0d08; stroke-width: 1; }
+#scene .ledge-shrubs ellipse { fill: #4a5a22; stroke: #1a0d08; stroke-width: 0.9; }
+
+/* menina na chuva: capa azul e caneca */
+#scene .sp-mug { fill: #f2efe6; stroke: #1a0d08; stroke-width: 1; }
+
+/* troca de papéis na via: ela escala (cabelo, camiseta roxa) e ele dá segurança (gorro, camiseta rosa) */
+#climber .c-hair { display: none; }
+#climber.as-her .c-hair { display: inline; }
+#climber.as-her .c-beanie { display: none; }
+#climber.as-her .c-torso { stroke: #8b7cf0; }
+#climber.rainwear .c-hair { display: none !important; }
+#spotters .sp-beanie { display: none; }
+#spotters.as-him .sp-beanie { display: inline; }
+#spotters.as-him .sp-hair { display: none; }
+#spotters.as-him .sp-torso { stroke: #e2457a; }
