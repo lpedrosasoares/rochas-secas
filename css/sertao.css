@@ -513,3 +513,37 @@ table.gauges td:first-child { white-space: normal; min-width: 130px; }
   .site-tabs .tab:nth-child(5) { border-left: 0; }
   .site-tabs .tab.on { border-top: 5px solid var(--site); }
 }
+
+/* ======== celular: correções de layout ======== */
+/* abas: no celular e tablet viram uma fileira que desliza (a regra de 8 colunas é só para tela larga) */
+@media (max-width: 1000px) {
+  .site-tabs {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(148px, 42%);
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .site-tabs .tab { scroll-snap-align: start; min-height: 0; }
+  .site-tabs .tab-meta { flex-direction: row; flex-wrap: wrap; align-items: center; }
+}
+@media (max-width: 640px) {
+  main { gap: 16px; padding-left: 12px; padding-right: 12px; }
+  .hero { padding-left: 12px; padding-right: 12px; }
+  .panel, .controls { padding: 14px 12px; }
+  .card { padding: 0 14px 16px; }
+  .card::before { margin: 0 -14px 6px; }
+  .tape { font-size: 28px; }
+  .panel-head { gap: 8px; }
+  .legend { font-size: 11px; gap: 6px 12px; }
+  .verdict { font-size: 24px; }
+  .site-tabs .tab-name { font-size: 18px; }
+  /* tabela de estações: some a coluna "Leitura" para caber */
+  table.gauges th:nth-child(3), table.gauges td:nth-child(3) { display: none; }
+  table.gauges th, table.gauges td { padding: 6px 5px; font-size: 12px; }
+  table.models th, table.models td { padding: 6px 5px; font-size: 12px; }
+  table.models .res { display: block; }
+  /* regras do veredito: selo em cima, explicação embaixo */
+  .rules li { display: flex; flex-direction: column; gap: 2px; }
+  .rules .pill { min-width: 0; }
+  .views { padding: 8px 10px; }
+  .view { grid-template-columns: 84px 1fr; }
+  .view .vdetail { grid-column: 1 / -1; }
+}

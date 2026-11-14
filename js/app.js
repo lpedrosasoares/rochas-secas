@@ -992,7 +992,7 @@ function renderCumulative() {
   for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 15) ends[i].y = ends[i - 1].y + 15;
   ends.forEach((e) => {
     svgEl('circle', { cx: xOf(n - 1), cy: y(e.v), r: 3, fill: `var(${e.x.color})` }, svg);
-    svgEl('text', { x: xOf(n - 1) + 8, y: e.y + 4, class: 'val-label' }, svg).textContent = `${e.x.name.split(' ')[0]} ${fmtMm(e.v)} mm`;
+    svgEl('text', { x: xOf(n - 1) + 8, y: e.y + 4, class: 'val-label' }, svg).textContent = SITES.length > 1 ? `${e.x.name.split(' ')[0]} ${fmtMm(e.v)} mm` : `${fmtMm(e.v)} mm`;
   });
 
   // horário avaliado
