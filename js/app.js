@@ -81,6 +81,31 @@ const SITES = [
     scene: 'boulder',
     cptec: 5515,
   },
+  {
+    id: 'milhoverde',
+    place: 'MG · boulder e vias',
+    name: 'Milho Verde',
+    rock: 'Boulder e vias · quartzito · Serro',
+    lat: -18.4594,
+    lon: -43.4837,
+    color: '--series-7',
+    link: null,
+    scene: 'via',
+    cptec: 5188, // Serro
+    gaugeMaxKm: 20, // a estação a 2 km está travada em zero; as outras do Serro ficam a ~19 km
+  },
+  {
+    id: 'pedrarachada',
+    place: 'MG · boulder',
+    name: 'Pedra Rachada',
+    rock: 'Boulder · itabirito · Sabará',
+    lat: -19.8405,
+    lon: -43.7662,
+    color: '--series-8',
+    link: null,
+    scene: 'boulder',
+    cptec: 4468, // Sabará
+  },
 ];
 
 // Aba ativa: cada setor tem a sua página (#iperocks, #flona)
@@ -222,6 +247,8 @@ const STATION_IDS = [
   6779, 6761,                                     // Cocalzinho: Pirenópolis, Alexânia
   9374, 9353, 7170,                               // Serra do Cipó: Morro do Pilar, Jaboticatubas, Conceição do Mato Dentro
   3506, 3501, 3503, 3522, 3517, 3505,             // Ubatuba: Lagoinha, Praia Dura, Praia do Lázaro, Perequê-Mirim, Araribá, Estufa II
+  17296, 17295, 17294,                            // Milho Verde: estações do Serro
+  6211, 6631, 6224, 6222, 6217,                   // Pedra Rachada: Sabará (Ravena, Ribeirão Sabará, Borba Gato, N. S. de Fátima) e Caeté
 ];
 const GAUGE_SHOW_KM = 45; // estações mostradas no painel (as mais longe são só referência)
 const GAUGE_MAX_KM = 15;   // mais longe que isso não representa o setor

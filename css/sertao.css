@@ -455,9 +455,9 @@ table.gauges td:first-child { white-space: normal; min-width: 130px; }
 #spotters.as-him .sp-torso { stroke: #e2457a; }
 
 /* cores dos picos novos (ordem validada da paleta categórica) */
-:root { --series-3: #1baf7a; --series-4: #eda100; --series-5: #e87ba4; --series-6: #008300; }
-:root[data-theme="dark"] { --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #008300; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #008300; } }
+:root { --series-3: #1baf7a; --series-4: #eda100; --series-5: #e87ba4; --series-6: #008300; --series-7: #6250d6; --series-8: #e34948; }
+:root[data-theme="dark"] { --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767; } }
 
 /* abas: com 5 picos, rolam para os lados quando não cabem */
 .site-tabs { display: flex; overflow-x: auto; scrollbar-width: thin; }
@@ -500,4 +500,16 @@ table.gauges td:first-child { white-space: normal; min-width: 130px; }
 @media (max-width: 520px) {
   .site-tabs { grid-auto-columns: minmax(140px, 46%); }
   .site-tabs .tab-name { font-size: 19px; }
+}
+
+/* 8 picos: uma linha no computador largo, duas fileiras de 4 em telas médias */
+.site-tabs { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.site-tabs .tab { padding: 9px 10px 8px; }
+.site-tabs .tab-name { font-size: 19px; }
+.site-tabs .tab-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+@media (max-width: 1240px) and (min-width: 1001px) {
+  .site-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .site-tabs .tab:nth-child(n+5) { border-top: 2px solid var(--ink); }
+  .site-tabs .tab:nth-child(5) { border-left: 0; }
+  .site-tabs .tab.on { border-top: 5px solid var(--site); }
 }
