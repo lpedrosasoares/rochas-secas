@@ -9,21 +9,77 @@ const FORECAST_DAYS = 4;
 const SITES = [
   {
     id: 'iperocks',
+    place: 'SP · boulder',
     name: 'Iperocks',
     rock: 'Boulder',
     lat: -23.41943,
     lon: -47.6631,
     color: '--series-1',
     link: null,
+    scene: 'boulder',
+    cptec: 2437, // Iperó
   },
   {
     id: 'flona',
+    place: 'SP · vias',
     name: 'Flona de Ipanema',
     rock: 'Vias',
     lat: -23.4508,
     lon: -47.6174,
     color: '--series-2',
     link: null,
+    scene: 'via',
+    cptec: 2437,
+  },
+  {
+    id: 'saobento',
+    place: 'SP · vias',
+    name: 'São Bento do Sapucaí',
+    rock: 'Vias · granito/gnaisse · Pedra do Baú',
+    lat: -22.6889,
+    lon: -45.6614,
+    color: '--series-3',
+    link: null,
+    scene: 'via',
+    cptec: 4758,
+  },
+  {
+    id: 'cocalzinho',
+    place: 'GO · boulder e vias',
+    name: 'Cocalzinho de Goiás',
+    rock: 'Boulder e vias · quartzito · Três Picos',
+    lat: -15.796,
+    lon: -48.8385,
+    color: '--series-4',
+    link: null,
+    scene: 'boulder',
+    cptec: 1518,
+    gaugeMinCoverage: 0.2, // Pirenópolis transmite com falhas: nas horas sem dado entra o modelo
+  },
+  {
+    id: 'cipo',
+    place: 'MG · vias',
+    name: 'Serra do Cipó',
+    rock: 'Vias esportivas · calcário',
+    lat: -19.3071,
+    lon: -43.6137,
+    color: '--series-5',
+    link: null,
+    scene: 'via',
+    cptec: 4686,
+    gaugeMaxKm: 30, // as estações mais perto ficam a 25–27 km
+  },
+  {
+    id: 'ubatuba',
+    place: 'SP · boulder',
+    name: 'Ubatuba',
+    rock: 'Boulder · gnaisse · Pontão da Fortaleza',
+    lat: -23.5304,
+    lon: -45.1587,
+    color: '--series-6',
+    link: null,
+    scene: 'boulder',
+    cptec: 5515,
   },
 ];
 
@@ -160,7 +216,14 @@ async function loadData() {
 // ---------------------------------------------------------------------------
 const CEMADEN = 'https://mapservices.cemaden.gov.br/MapaInterativoWS/resources/horario';
 // estações da região (Iperó, Capela do Alto, Boituva, Araçoiaba, Sorocaba, Votorantim)
-const STATION_IDS = [8140, 8128, 8124, 8122, 7085, 7086, 4407, 3017];
+const STATION_IDS = [
+  8140, 8128, 8124, 8122, 7085, 7086, 4407, 3017, // Iperó / Sorocaba
+  6692, 7703, 3218, 6575, 19553, 8171,            // São Bento do Sapucaí / Campos do Jordão / Sapucaí-Mirim
+  6779, 6761,                                     // Cocalzinho: Pirenópolis, Alexânia
+  9374, 9353, 7170,                               // Serra do Cipó: Morro do Pilar, Jaboticatubas, Conceição do Mato Dentro
+  3506, 3501, 3503, 3522, 3517, 3505,             // Ubatuba: Lagoinha, Praia Dura, Praia do Lázaro, Perequê-Mirim, Araribá, Estufa II
+];
+const GAUGE_SHOW_KM = 45; // estações mostradas no painel (as mais longe são só referência)
 const GAUGE_MAX_KM = 15;   // mais longe que isso não representa o setor
 const GAUGE_FRESH_H = 6;   // estação sem dado há mais tempo é considerada parada
 state.stations = [];
@@ -204,7 +267,8 @@ async function loadGauges() {
 }
 
 // Estação "travada": mede quase nada enquanto o modelo estima muita chuva no mesmo período
-function gaugeSuspect(st, model) {
+// cobertura = fração das horas com dado; travada = mede quase nada enquanto o modelo estima muita chuva
+function gaugeQuality(st, model) {
   let meas = 0;
   let mod = 0;
   let n = 0;
@@ -213,8 +277,9 @@ function gaugeSuspect(st, model) {
     if (v == null) continue;
     meas += v; mod += model[i] || 0; n++;
   }
-  st.suspect = n < state.nowIdx * 0.5 || (mod > 20 && meas < mod * 0.1);
-  return st.suspect;
+  st.cov = n / Math.max(1, state.nowIdx + 1);
+  st.stuck = mod > 20 && meas < mod * 0.1;
+  st.suspect = st.cov < 0.5 || st.stuck;
 }
 
 // Usa a chuva medida no passado (estação ativa mais próxima) e o modelo no futuro
@@ -224,11 +289,20 @@ function mergeGauges() {
   for (const s of SITES) {
     const h = state.hourly[s.id];
     h.model = h.model || h.precip.slice();
+  }
+  // qualidade de cada estação, comparada com o modelo do pico mais próximo
+  state.stations.forEach((st) => {
+    const near = SITES.slice().sort((a, b) => distKm(a, st) - distKm(b, st))[0];
+    gaugeQuality(st, state.hourly[near.id].model);
+  });
+  for (const s of SITES) {
+    const h = state.hourly[s.id];
     h.precip = h.model.slice();
+    const minCov = s.gaugeMinCoverage ?? 0.5;
     const near = state.stations
-      .filter((st) => st.enabled && st.last && hoursSince(st.last) <= GAUGE_FRESH_H && !gaugeSuspect(st, h.model))
+      .filter((st) => st.enabled && st.last && hoursSince(st.last) <= GAUGE_FRESH_H && !st.stuck && st.cov >= minCov)
       .map((st) => ({ st, km: distKm(s, st) }))
-      .filter((x) => x.km <= GAUGE_MAX_KM)
+      .filter((x) => x.km <= (s.gaugeMaxKm ?? GAUGE_MAX_KM))
       .sort((a, b) => a.km - b.km)[0];
     state.gauge[s.id] = near || null;
     if (!near) continue;
@@ -320,7 +394,7 @@ function renderHero() {
   }).join('');
   renderTabs();
   if (typeof Scene !== 'undefined') {
-    if (Scene.setScene) Scene.setScene(state.site === 'flona' ? 'via' : 'boulder');
+    if (Scene.setScene) Scene.setScene(SITES.find((x) => x.id === state.site).scene || 'boulder');
     Scene.setWeather(active);
     const isDay = state.hourly[state.site].isDay;
     if (Scene.setNight && isDay) Scene.setNight(isDay[state.target] === 0);
@@ -335,8 +409,12 @@ function renderTabs() {
     const st = STATUS[readings(s).status];
     const on = s.id === state.site;
     return `<a role="tab" aria-selected="${on}" class="tab ${on ? 'on' : ''}" href="#${s.id}" style="--site:var(${s.color})">
-      <i class="swatch" style="background:var(${s.color})"></i><span class="tab-name">${s.name}</span><span class="pill ${st.cls}">${st.label}</span></a>`;
+      <span class="tab-top"><i class="swatch" style="background:var(${s.color})"></i><span class="tab-name">${s.name}</span></span>
+      <span class="tab-meta"><span class="tab-place">${s.place || ''}</span><span class="pill ${st.cls}">${st.label}</span></span></a>`;
   }).join('');
+  // deixa a aba ativa visível na barra (que rola para os lados)
+  const on = nav.querySelector('.tab.on');
+  if (on && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = on.offsetLeft - (nav.clientWidth - on.clientWidth) / 2;
 }
 
 function setSite(id) {
@@ -946,7 +1024,8 @@ function gaugeStatus(st) {
   if (!st.last) return { key: 'off', label: 'parado' };
   const h = (Date.parse(now + ':00Z') - Date.parse(st.last + ':00Z')) / 3600e3;
   if (!st.enabled || h > GAUGE_FRESH_H) return { key: 'off', label: 'parado' };
-  if (st.suspect) return { key: 'bad', label: 'com defeito' };
+  if (st.stuck) return { key: 'bad', label: 'com defeito' };
+  if (st.cov < 0.5) return { key: 'gap', label: 'com falhas' };
   return { key: 'ok', label: 'ativo' };
 }
 function gaugeSum(st, hours) {
@@ -981,8 +1060,11 @@ function renderGaugeMap(byDist) {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(gaugeMap);
     L.control.scale({ imperial: false }).addTo(gaugeMap);
     gaugeLayer = L.layerGroup().addTo(gaugeMap);
+  }
+  if (gaugeMap._site !== state.site) {
+    gaugeMap._site = state.site;
     const pts = byDist.map(({ st }) => [st.lat, st.lon]).concat(SITES.map((x) => [x.lat, x.lon]));
-    gaugeMap.fitBounds(pts, { padding: [24, 24] });
+    gaugeMap.fitBounds(pts, { padding: [24, 24], maxZoom: 12 });
   }
   gaugeLayer.clearLayers();
   // setores
@@ -1028,10 +1110,11 @@ function renderGauges() {
   }
   // estação padrão: a usada pelo Iperocks (ou a mais próxima)
   // só as estações funcionando (paradas ou com defeito ficam de fora)
-  const working = state.stations.filter((st) => gaugeStatus(st).key === 'ok');
+  const inUse = state.gauge[SITES[0].id] && state.gauge[SITES[0].id].st.id;
+  const working = state.stations.filter((st) => (gaugeStatus(st).key === 'ok' || st.id === inUse) && distKm(SITES[0], st) <= GAUGE_SHOW_KM);
   if (!working.length) {
     chartBox.innerHTML = '';
-    tableBox.innerHTML = '<p class="note">Nenhum pluviômetro funcionando perto agora.</p>';
+    tableBox.innerHTML = '<p class="note">Nenhum pluviômetro do CEMADEN funcionando perto deste pico agora. A chuva vem só do modelo.</p>';
     return;
   }
   const byDist = working.map((st) => ({ st, km: SITES.map((x) => distKm(x, st)) })).sort((a, b) => a.km[0] - b.km[0]);
@@ -1044,7 +1127,7 @@ function renderGauges() {
   const used = new Set(SITES.map((x) => state.gauge[x.id] && state.gauge[x.id].st.id).filter(Boolean));
   const mm = (v) => (v == null ? '–' : fmtMm(v));
   tableBox.innerHTML = `<table class="gauges">
-    <thead><tr><th>Estação</th>${SITES.map((x) => `<th>${x.name.split(' ')[0]}</th>`).join('')}<th>Leitura</th><th>24 h</th><th>72 h</th><th>7 dias</th><th>Situação</th></tr></thead>
+    <thead><tr><th>Estação</th><th>Distância</th><th>Leitura</th><th>24 h</th><th>72 h</th><th>7 dias</th><th>Situação</th></tr></thead>
     <tbody>${byDist.map(({ st, km }) => {
       const stt = gaugeStatus(st);
       const ok = stt.key === 'ok';
@@ -1146,14 +1229,17 @@ async function loadModels() {
     out.site[x.id] = {};
     MODELS.forEach((mo) => { out.site[x.id][mo.id] = json[i].daily[`precipitation_sum_${mo.id}`] || []; });
   });
-  // previsão oficial brasileira (CPTEC/INPE) para Iperó, via BrasilAPI
-  try {
-    const r = await fetch('https://brasilapi.com.br/api/cptec/v1/clima/previsao/2437/6');
-    if (r.ok) {
-      const j = await r.json();
-      out.cptec = Object.fromEntries((j.clima || []).map((c) => [c.data, c]));
-    }
-  } catch { /* sem CPTEC: a tabela segue só com os modelos */ }
+  // previsão oficial brasileira (CPTEC/INPE) da cidade de cada pico, via BrasilAPI
+  out.cptec = {};
+  const codes = [...new Set(SITES.map((x) => x.cptec).filter(Boolean))];
+  const byCode = {};
+  await Promise.all(codes.map(async (code) => {
+    try {
+      const r = await fetch(`https://brasilapi.com.br/api/cptec/v1/clima/previsao/${code}/6`);
+      if (r.ok) { const j = await r.json(); byCode[code] = Object.fromEntries((j.clima || []).map((c) => [c.data, c])); }
+    } catch { /* sem CPTEC: a tabela segue só com os modelos */ }
+  }));
+  SITES.forEach((x) => { if (byCode[x.cptec]) out.cptec[x.id] = byCode[x.cptec]; });
   state.models = out;
 }
 
@@ -1196,8 +1282,8 @@ function renderModels() {
       ${MODELS.map((mo) => `<tr><td>${mo.name} <span class="muted">${mo.from}</span> <small class="res">(res ${mo.res})</small></td>${days.map((_, i) => cell(data[mo.id][i])).join('')}</tr>`).join('')}
       <tr class="mean"><td><b>Média</b></td>${mean.map((v) => cell(v)).join('')}</tr>
       <tr class="spread"><td>Diferença entre modelos</td>${spread.map((v) => `<td>${fmtMm(v)} mm</td>`).join('')}</tr>
-      ${state.models.cptec ? `<tr class="cptec"><td>CPTEC/INPE <span class="muted">Brasil</span> <small class="res">cidade</small></td>${days.map((d) => {
-        const c = state.models.cptec[d];
+      ${state.models.cptec[state.site] ? `<tr class="cptec"><td>CPTEC/INPE <span class="muted">Brasil</span> <small class="res">cidade</small></td>${days.map((d) => {
+        const c = state.models.cptec[state.site][d];
         if (!c) return '<td class="muted">–</td>';
         const rain = /chuv|pancada|trovoada|garoa/i.test(c.condicao_desc);
         return `<td class="${rain ? 'cptec-rain' : ''}">${c.condicao_desc}</td>`;

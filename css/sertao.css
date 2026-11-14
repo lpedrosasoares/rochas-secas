@@ -453,3 +453,51 @@ table.gauges td:first-child { white-space: normal; min-width: 130px; }
 #spotters.as-him .sp-beanie { display: inline; }
 #spotters.as-him .sp-hair { display: none; }
 #spotters.as-him .sp-torso { stroke: #e2457a; }
+
+/* cores dos picos novos (ordem validada da paleta categórica) */
+:root { --series-3: #1baf7a; --series-4: #eda100; --series-5: #e87ba4; --series-6: #008300; }
+:root[data-theme="dark"] { --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #008300; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #008300; } }
+
+/* abas: com 5 picos, rolam para os lados quando não cabem */
+.site-tabs { display: flex; overflow-x: auto; scrollbar-width: thin; }
+.site-tabs .tab { flex: 1 0 auto; white-space: nowrap; }
+.site-tabs .tab-name { font-size: 22px; }
+.site-tabs .tab .pill { font-size: 11px; }
+@media (max-width: 520px) { .site-tabs .tab { flex-wrap: nowrap; } .site-tabs .tab-name { font-size: 18px; } }
+/* com as abas mostrando o veredito de cada pico, os selos do topo ficam redundantes */
+.hero-status { display: none; }
+.g-gap::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; border: 1.5px solid var(--ink); vertical-align: -1px; background: var(--warning); }
+
+/* ======== abas em cartões: 6 picos numa linha (computador) e fileira deslizante (celular) ======== */
+.site-tabs {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0;
+  overflow: visible;
+}
+.site-tabs .tab {
+  display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 8px;
+  padding: 10px 12px 9px; white-space: normal; min-height: 76px;
+  border-top: 5px solid transparent; border-bottom: 0;
+}
+.site-tabs .tab + .tab { border-left: 2px solid var(--ink); }
+.site-tabs .tab.on { border-top-color: var(--site); }
+.site-tabs .tab-top { display: flex; align-items: flex-start; gap: 7px; }
+.site-tabs .tab-top .swatch { margin-top: 3px; flex: none; width: 11px; height: 11px; }
+.site-tabs .tab-name { font: 400 21px/0.98 var(--display); letter-spacing: 0.03em; text-transform: uppercase; }
+.site-tabs .tab-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.site-tabs .tab-place { font-size: 11px; color: var(--muted); letter-spacing: 0.02em; }
+.site-tabs .tab.on .tab-place { color: rgba(247, 223, 178, 0.75); }
+.site-tabs .tab .pill { font-size: 10.5px; }
+.site-tabs .tab .pill::before { width: 11px; height: 11px; }
+@media (max-width: 1000px) {
+  .site-tabs {
+    display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(150px, 34%);
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .site-tabs::-webkit-scrollbar { display: none; }
+  .site-tabs .tab { scroll-snap-align: start; }
+}
+@media (max-width: 520px) {
+  .site-tabs { grid-auto-columns: minmax(140px, 46%); }
+  .site-tabs .tab-name { font-size: 19px; }
+}
